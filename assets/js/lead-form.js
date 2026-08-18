@@ -1,6 +1,7 @@
 // ===== Encanto Glow — formulário de cadastro (área do cliente) =====
 (function () {
   const WHATSAPP_NUMBER = "5515992809088";
+  const SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_1KixFPNg8exeGzPzu3WaCbRQlt8gB-iIUmZNfFyKqZ5u7aEq42gd_EAG2lzFZ46e/exec";
   const form = document.getElementById("leadForm");
   if (!form) return;
 
@@ -41,6 +42,17 @@
     }
   }
 
+  function saveLeadToSheet(data) {
+    if (!SHEET_WEBHOOK_URL) return;
+    fetch(SHEET_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(data),
+    }).catch(() => {
+      // Falha silenciosa — o cadastro ainda segue pelo WhatsApp normalmente
+    });
+  }
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
@@ -63,6 +75,7 @@
     };
 
     saveLeadLocally(data);
+    saveLeadToSheet(data);
 
     const lines = [
       "Olá! Gostaria de agendar uma avaliação na Encanto Glow. 💉",
