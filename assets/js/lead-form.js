@@ -1,6 +1,5 @@
 // ===== Encanto Glow — formulário de cadastro (área do cliente) =====
 (function () {
-  const WHATSAPP_NUMBER = "5515992809088";
   const SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_1KixFPNg8exeGzPzu3WaCbRQlt8gB-iIUmZNfFyKqZ5u7aEq42gd_EAG2lzFZ46e/exec";
   const form = document.getElementById("leadForm");
   if (!form) return;
@@ -9,6 +8,8 @@
   const referrerInput = document.getElementById("leadReferrer");
   const feedback = document.getElementById("leadFormFeedback");
   const procedureSelect = document.getElementById("leadProcedure");
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const submitBtnDefaultText = submitBtn ? submitBtn.textContent : "";
 
   if (procedureSelect && typeof TREATMENTS !== "undefined") {
     TREATMENTS.forEach((t) => {
@@ -38,22 +39,25 @@
       leads.push(data);
       localStorage.setItem("encantoGlowLeads", JSON.stringify(leads));
     } catch (err) {
-      // localStorage indisponível — segue apenas o envio via WhatsApp
+      // localStorage indisponível — segue mesmo assim
     }
   }
 
-  function saveLeadToSheet(data) {
-    if (!SHEET_WEBHOOK_URL) return;
-    fetch(SHEET_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(data),
-    }).catch(() => {
-      // Falha silenciosa — o cadastro ainda segue pelo WhatsApp normalmente
-    });
+  async function saveLeadToSheet(data) {
+    if (!SHEET_WEBHOOK_URL) return { ok: false };
+    try {
+      const res = await fetch(SHEET_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(data),
+      });
+      return await res.json();
+    } catch (err) {
+      return { ok: false };
+    }
   }
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     if (!form.checkValidity()) {
@@ -75,31 +79,31 @@
     };
 
     saveLeadLocally(data);
-    saveLeadToSheet(data);
 
-    const lines = [
-      "Olá! Gostaria de agendar uma avaliação na Encanto Glow. 💉",
-      "",
-      "*Cadastro — Área do Cliente*",
-      `Nome: ${data.nome}`,
-      `Telefone: ${data.telefone}`,
-      `E-mail: ${data.email}`,
-      `Cidade: ${data.cidade}`,
-      `Indicação: ${data.indicacao}${data.quemIndicou ? " — " + data.quemIndicou : ""}`,
-      `Procedimento de interesse: ${data.procedimento}`,
-    ];
-    if (data.observacao) {
-      lines.push(`Observação: ${data.observacao}`);
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviando...";
     }
-    const message = encodeURIComponent(lines.join("\n"));
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank", "noopener");
+
+    const result = await saveLeadToSheet(data);
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitBtnDefaultText;
+    }
 
     if (feedback) {
       feedback.hidden = false;
-      feedback.textContent = "Cadastro enviado! Abrimos o WhatsApp com seus dados prontos — é só confirmar o envio por lá.";
+      if (result && result.ok) {
+        feedback.textContent = "Cadastro enviado com sucesso! Em breve entraremos em contato.";
+      } else {
+        feedback.textContent = "Não foi possível enviar agora. Tente novamente em instantes.";
+      }
     }
 
-    form.reset();
-    referrerField.hidden = true;
+    if (result && result.ok) {
+      form.reset();
+      referrerField.hidden = true;
+    }
   });
 })();
