@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel Interno — Encanto Glow</title>
+<link rel="icon" href="assets/images/logo-encanto-glow.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/painel.css">
+</head>
+<body class="panel-body">
+
+<div class="panel-gate" id="panelGate">
+  <div class="panel-gate-card">
+    <img src="assets/images/logo-encanto-glow.jpg" alt="Encanto Glow" class="panel-gate-logo">
+    <h1>Painel Interno</h1>
+    <p>Acesso restrito. Digite o código para continuar.</p>
+    <input type="password" id="gateCode" placeholder="Código de acesso" autocomplete="off">
+    <button type="button" class="btn btn-primary" id="gateSubmit" style="width:100%; justify-content:center; margin-top:0.8rem;">Entrar</button>
+    <p class="panel-gate-error" id="gateError" hidden>Código incorreto.</p>
+  </div>
+</div>
+
+<div class="panel-app" id="panelApp" hidden>
+  <header class="panel-header">
+    <div class="panel-header-inner">
+      <img src="assets/images/logo-encanto-glow.jpg" alt="Encanto Glow" class="panel-logo">
+      <h1>Painel Interno — Encanto Glow</h1>
+      <button type="button" class="btn btn-ghost panel-refresh" id="refreshBtn">🔄 Atualizar dados</button>
+    </div>
+    <nav class="panel-tabs" id="panelTabs">
+      <button class="panel-tab active" data-tab="novo">Novo Agendamento</button>
+      <button class="panel-tab" data-tab="calendario">Calendário</button>
+      <button class="panel-tab" data-tab="todos">Todos os Agendamentos</button>
+      <button class="panel-tab" data-tab="paciente">Buscar Paciente</button>
+    </nav>
+  </header>
+
+  <main class="panel-main">
+
+    <!-- ===== Novo Agendamento ===== -->
+    <section class="panel-panel active" id="tab-novo">
+      <div class="panel-card panel-card-narrow">
+        <h2>Novo agendamento</h2>
+        <form id="agendaForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="agNome">Nome do paciente</label>
+              <input type="text" id="agNome" required>
+            </div>
+            <div class="form-field">
+              <label for="agTelefone">Telefone</label>
+              <input type="tel" id="agTelefone" required placeholder="(15) 99999-9999">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="agEmail">E-mail (opcional)</label>
+              <input type="email" id="agEmail">
+            </div>
+            <div class="form-field">
+              <label for="agProcedimento">Procedimento</label>
+              <select id="agProcedimento" required>
+                <option value="" disabled selected>Selecione</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="agData">Data da consulta</label>
+              <input type="date" id="agData" required>
+            </div>
+            <div class="form-field">
+              <label for="agHorario">Horário</label>
+              <input type="time" id="agHorario" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="agValor">Valor (R$)</label>
+              <input type="number" id="agValor" min="0" step="0.01" placeholder="0,00">
+            </div>
+            <div class="form-field">
+              <label for="agStatus">Status</label>
+              <select id="agStatus">
+                <option value="Agendado" selected>Agendado</option>
+                <option value="Concluído">Concluído</option>
+                <option value="Cancelado">Cancelado</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="agObs">Observação</label>
+            <textarea id="agObs" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Salvar agendamento</button>
+          <p class="form-feedback" id="agendaFeedback" hidden></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== Calendário ===== -->
+    <section class="panel-panel" id="tab-calendario">
+      <div class="panel-card">
+        <div class="panel-cal-header">
+          <button type="button" class="btn btn-ghost" id="calPrev">&larr;</button>
+          <h2 id="calTitle">—</h2>
+          <button type="button" class="btn btn-ghost" id="calNext">&rarr;</button>
+        </div>
+        <div class="panel-cal-grid" id="calGrid"></div>
+      </div>
+      <div class="panel-card" id="calDayCard" hidden>
+        <h3 id="calDayTitle">—</h3>
+        <div class="panel-list" id="calDayList"></div>
+      </div>
+    </section>
+
+    <!-- ===== Todos os Agendamentos ===== -->
+    <section class="panel-panel" id="tab-todos">
+      <div class="panel-card">
+        <div class="panel-filter-row">
+          <input type="text" id="todosFiltro" placeholder="Filtrar por nome...">
+          <select id="todosStatusFiltro">
+            <option value="">Todos os status</option>
+            <option value="Agendado">Agendado</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+        <div class="panel-table-wrap">
+          <table class="panel-table" id="todosTable">
+            <thead>
+              <tr>
+                <th>Data</th><th>Horário</th><th>Nome</th><th>Telefone</th><th>Procedimento</th><th>Valor</th><th>Status</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="todosTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Buscar Paciente ===== -->
+    <section class="panel-panel" id="tab-paciente">
+      <div class="panel-card">
+        <input type="text" id="pacienteBusca" placeholder="Digite o nome do paciente...">
+      </div>
+      <div id="pacienteResultados"></div>
+    </section>
+
+  </main>
+</div>
+
+<script src="assets/js/treatments-data.js"></script>
+<script src="assets/js/painel.js"></script>
+</body>
+</html>

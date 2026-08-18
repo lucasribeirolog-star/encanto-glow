@@ -1,0 +1,401 @@
+// ===== Encanto Glow — Painel Interno =====
+(function () {
+  const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_1KixFPNg8exeGzPzu3WaCbRQlt8gB-iIUmZNfFyKqZ5u7aEq42gd_EAG2lzFZ46e/exec";
+  const ADMIN_TOKEN = "ec40038a41c77584f3367385";
+  const ACCESS_CODE = "EncantoGlow2026";
+  const SESSION_KEY = "encantoGlowPanelUnlocked";
+
+  const state = { agendamentos: [] };
+  let calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
+  const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const DOWS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+  // ---------- Gate ----------
+  const gate = document.getElementById("panelGate");
+  const app = document.getElementById("panelApp");
+  const gateCode = document.getElementById("gateCode");
+  const gateSubmit = document.getElementById("gateSubmit");
+  const gateError = document.getElementById("gateError");
+
+  function unlock() {
+    gate.style.display = "none";
+    app.hidden = false;
+    init();
+  }
+
+  if (sessionStorage.getItem(SESSION_KEY) === "1") {
+    unlock();
+  } else {
+    gateSubmit.addEventListener("click", tryUnlock);
+    gateCode.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") tryUnlock();
+    });
+  }
+
+  function tryUnlock() {
+    if (gateCode.value === ACCESS_CODE) {
+      sessionStorage.setItem(SESSION_KEY, "1");
+      unlock();
+    } else {
+      gateError.hidden = false;
+      gateCode.value = "";
+      gateCode.focus();
+    }
+  }
+
+  // ---------- Init (só roda após desbloquear) ----------
+  function init() {
+    populateProcedimentos();
+    setupTabs();
+    setupAgendaForm();
+    setupCalendar();
+    setupTodos();
+    setupPaciente();
+    document.getElementById("refreshBtn").addEventListener("click", () => loadAgendamentos(true));
+    renderCalendar();
+    renderTodos();
+    loadAgendamentos();
+  }
+
+  function populateProcedimentos() {
+    const select = document.getElementById("agProcedimento");
+    if (!select || typeof TREATMENTS === "undefined") return;
+    TREATMENTS.forEach((t) => {
+      const opt = document.createElement("option");
+      opt.value = t.name;
+      opt.textContent = t.name;
+      select.appendChild(opt);
+    });
+    const outro = document.createElement("option");
+    outro.value = "Outro";
+    outro.textContent = "Outro";
+    select.appendChild(outro);
+  }
+
+  // ---------- Tabs ----------
+  function setupTabs() {
+    document.querySelectorAll(".panel-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".panel-tab").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel-panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      });
+    });
+  }
+
+  // ---------- Data loading ----------
+  async function loadAgendamentos(showFeedback) {
+    try {
+      const url = `${WEBHOOK_URL}?action=list_agendamentos&token=${encodeURIComponent(ADMIN_TOKEN)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.ok) {
+        state.agendamentos = json.rows || [];
+        renderCalendar();
+        renderTodos();
+        renderPacienteResultados();
+      }
+    } catch (err) {
+      // silencioso — mantém os dados já carregados em memória
+    }
+  }
+
+  // ---------- Novo Agendamento ----------
+  function setupAgendaForm() {
+    const form = document.getElementById("agendaForm");
+    const feedback = document.getElementById("agendaFeedback");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        tipo: "agendamento",
+        token: ADMIN_TOKEN,
+        nome: document.getElementById("agNome").value.trim(),
+        telefone: document.getElementById("agTelefone").value.trim(),
+        email: document.getElementById("agEmail").value.trim(),
+        procedimento: document.getElementById("agProcedimento").value,
+        dataConsulta: document.getElementById("agData").value,
+        horario: document.getElementById("agHorario").value,
+        valor: document.getElementById("agValor").value,
+        status: document.getElementById("agStatus").value,
+        observacao: document.getElementById("agObs").value.trim(),
+      };
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = "Salvando...";
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        feedback.hidden = false;
+        if (json.ok) {
+          feedback.textContent = "Agendamento salvo com sucesso!";
+          form.reset();
+          loadAgendamentos();
+        } else {
+          feedback.textContent = "Erro ao salvar: " + (json.error || "tente novamente.");
+        }
+      } catch (err) {
+        feedback.hidden = false;
+        feedback.textContent = "Erro de conexão. Tente novamente.";
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Salvar agendamento";
+    });
+  }
+
+  // ---------- Calendário ----------
+  function setupCalendar() {
+    document.getElementById("calPrev").addEventListener("click", () => {
+      calState.month--;
+      if (calState.month < 0) { calState.month = 11; calState.year--; }
+      renderCalendar();
+    });
+    document.getElementById("calNext").addEventListener("click", () => {
+      calState.month++;
+      if (calState.month > 11) { calState.month = 0; calState.year++; }
+      renderCalendar();
+    });
+  }
+
+  function pad2(n) { return String(n).padStart(2, "0"); }
+
+  function renderCalendar() {
+    const grid = document.getElementById("calGrid");
+    if (!grid) return;
+    document.getElementById("calTitle").textContent = `${MESES[calState.month]} ${calState.year}`;
+
+    const countByDay = {};
+    state.agendamentos.forEach((ag) => {
+      const d = ag["Data da Consulta"];
+      if (typeof d === "string" && d.startsWith(`${calState.year}-${pad2(calState.month + 1)}`)) {
+        countByDay[d] = (countByDay[d] || 0) + 1;
+      }
+    });
+
+    let html = DOWS.map((d) => `<div class="panel-cal-dow">${d}</div>`).join("");
+
+    const firstDay = new Date(calState.year, calState.month, 1).getDay();
+    const daysInMonth = new Date(calState.year, calState.month + 1, 0).getDate();
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    for (let i = 0; i < firstDay; i++) {
+      html += `<div class="panel-cal-day empty"></div>`;
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${calState.year}-${pad2(calState.month + 1)}-${pad2(day)}`;
+      const count = countByDay[dateStr] || 0;
+      const isToday = dateStr === todayStr;
+      html += `<div class="panel-cal-day${isToday ? " today" : ""}" data-date="${dateStr}">
+        ${day}
+        ${count ? `<span class="panel-cal-badge">${count}</span>` : ""}
+      </div>`;
+    }
+
+    grid.innerHTML = html;
+    grid.querySelectorAll(".panel-cal-day:not(.empty)").forEach((cell) => {
+      cell.addEventListener("click", () => showDayDetails(cell.dataset.date));
+    });
+  }
+
+  function showDayDetails(dateStr) {
+    document.querySelectorAll(".panel-cal-day").forEach((c) => c.classList.remove("selected"));
+    const cell = document.querySelector(`.panel-cal-day[data-date="${dateStr}"]`);
+    if (cell) cell.classList.add("selected");
+
+    const dayCard = document.getElementById("calDayCard");
+    const list = document.getElementById("calDayList");
+    const [y, m, d] = dateStr.split("-");
+    document.getElementById("calDayTitle").textContent = `Agendamentos em ${d}/${m}/${y}`;
+
+    const items = state.agendamentos.filter((ag) => ag["Data da Consulta"] === dateStr);
+    if (items.length === 0) {
+      list.innerHTML = `<p class="panel-empty">Nenhum agendamento neste dia.</p>`;
+    } else {
+      list.innerHTML = items
+        .sort((a, b) => String(a["Horário"]).localeCompare(String(b["Horário"])))
+        .map(
+          (ag) => `
+        <div class="panel-list-item">
+          <div>
+            <div class="name">${ag["Horário"] || "--:--"} — ${escapeHtml(ag["Nome"])}</div>
+            <div class="meta">${escapeHtml(ag["Procedimento"] || "")} · ${escapeHtml(ag["Telefone"] || "")}</div>
+          </div>
+          <span class="status-${ag["Status"]}">${ag["Status"] || ""}</span>
+        </div>`
+        )
+        .join("");
+    }
+    dayCard.hidden = false;
+  }
+
+  // ---------- Todos os Agendamentos ----------
+  function setupTodos() {
+    document.getElementById("todosFiltro").addEventListener("input", renderTodos);
+    document.getElementById("todosStatusFiltro").addEventListener("change", renderTodos);
+  }
+
+  function renderTodos() {
+    const tbody = document.getElementById("todosTbody");
+    if (!tbody) return;
+    const filtro = (document.getElementById("todosFiltro").value || "").toLowerCase();
+    const statusFiltro = document.getElementById("todosStatusFiltro").value;
+
+    let rows = state.agendamentos.filter((ag) => {
+      const matchNome = (ag["Nome"] || "").toLowerCase().includes(filtro);
+      const matchStatus = !statusFiltro || ag["Status"] === statusFiltro;
+      return matchNome && matchStatus;
+    });
+
+    rows = rows.slice().sort((a, b) => String(b["Data da Consulta"]).localeCompare(String(a["Data da Consulta"])));
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="panel-empty">Nenhum agendamento encontrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows
+      .map((ag) => {
+        const [y, m, d] = String(ag["Data da Consulta"] || "").split("-");
+        const dataFmt = y ? `${d}/${m}/${y}` : "—";
+        return `
+        <tr>
+          <td>${dataFmt}</td>
+          <td>${escapeHtml(ag["Horário"] || "")}</td>
+          <td>${escapeHtml(ag["Nome"] || "")}</td>
+          <td>${escapeHtml(ag["Telefone"] || "")}</td>
+          <td>${escapeHtml(ag["Procedimento"] || "")}</td>
+          <td>${formatCurrency(ag["Valor"])}</td>
+          <td>
+            <select class="panel-status-select" data-id="${ag["ID"]}">
+              <option value="Agendado" ${ag["Status"] === "Agendado" ? "selected" : ""}>Agendado</option>
+              <option value="Concluído" ${ag["Status"] === "Concluído" ? "selected" : ""}>Concluído</option>
+              <option value="Cancelado" ${ag["Status"] === "Cancelado" ? "selected" : ""}>Cancelado</option>
+            </select>
+          </td>
+          <td></td>
+        </tr>`;
+      })
+      .join("");
+
+    tbody.querySelectorAll(".panel-status-select").forEach((sel) => {
+      sel.addEventListener("change", () => updateAgendamentoStatus(sel.dataset.id, sel.value));
+    });
+  }
+
+  async function updateAgendamentoStatus(id, status) {
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "update_agendamento", token: ADMIN_TOKEN, id, status }),
+      });
+      const ag = state.agendamentos.find((a) => String(a["ID"]) === String(id));
+      if (ag) ag["Status"] = status;
+      renderPacienteResultados();
+    } catch (err) {
+      alert("Não foi possível atualizar o status agora. Tente de novo.");
+    }
+  }
+
+  // ---------- Buscar Paciente ----------
+  function setupPaciente() {
+    document.getElementById("pacienteBusca").addEventListener("input", renderPacienteResultados);
+  }
+
+  function normalize(str) {
+    return (str || "")
+      .toString()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "");
+  }
+
+  function renderPacienteResultados() {
+    const container = document.getElementById("pacienteResultados");
+    if (!container) return;
+    const termo = normalize(document.getElementById("pacienteBusca").value);
+
+    if (!termo) {
+      container.innerHTML = `<p class="panel-empty">Digite o nome de um paciente para ver o histórico.</p>`;
+      return;
+    }
+
+    const grupos = {};
+    state.agendamentos.forEach((ag) => {
+      if (!normalize(ag["Nome"]).includes(termo)) return;
+      const chave = normalize(ag["Nome"]) + "|" + normalize(ag["Telefone"]);
+      if (!grupos[chave]) grupos[chave] = { nome: ag["Nome"], telefone: ag["Telefone"], email: ag["Email"], visitas: [] };
+      grupos[chave].visitas.push(ag);
+    });
+
+    const lista = Object.values(grupos);
+    if (lista.length === 0) {
+      container.innerHTML = `<p class="panel-empty">Nenhum paciente encontrado com esse nome.</p>`;
+      return;
+    }
+
+    container.innerHTML = lista
+      .map((paciente) => {
+        const concluidas = paciente.visitas.filter((v) => v["Status"] === "Concluído");
+        const totalGasto = concluidas.reduce((sum, v) => sum + (parseFloat(v["Valor"]) || 0), 0);
+        const procedimentos = [...new Set(concluidas.map((v) => v["Procedimento"]).filter(Boolean))];
+        const visitasOrdenadas = paciente.visitas
+          .slice()
+          .sort((a, b) => String(b["Data da Consulta"]).localeCompare(String(a["Data da Consulta"])));
+
+        return `
+        <div class="panel-patient-card">
+          <div class="panel-patient-head">
+            <div>
+              <h3>${escapeHtml(paciente.nome)}</h3>
+              <span>${escapeHtml(paciente.telefone || "")}${paciente.email ? " · " + escapeHtml(paciente.email) : ""}</span>
+            </div>
+          </div>
+          <div class="panel-stats">
+            <div class="panel-stat"><strong>${paciente.visitas.length}</strong><span>Agendamentos</span></div>
+            <div class="panel-stat"><strong>${concluidas.length}</strong><span>Visitas concluídas</span></div>
+            <div class="panel-stat"><strong>${formatCurrency(totalGasto)}</strong><span>Total gasto</span></div>
+            <div class="panel-stat"><strong>${procedimentos.length}</strong><span>Procedimentos distintos</span></div>
+          </div>
+          ${procedimentos.length ? `<p style="margin-bottom:1rem; font-size:0.88rem; color:var(--ink-soft);"><strong>Procedimentos realizados:</strong> ${procedimentos.map(escapeHtml).join(", ")}</p>` : ""}
+          <div class="panel-list">
+            ${visitasOrdenadas
+              .map((v) => {
+                const [y, m, d] = String(v["Data da Consulta"] || "").split("-");
+                const dataFmt = y ? `${d}/${m}/${y}` : "—";
+                return `
+              <div class="panel-list-item">
+                <div>
+                  <div class="name">${dataFmt} ${v["Horário"] ? "às " + v["Horário"] : ""} — ${escapeHtml(v["Procedimento"] || "")}</div>
+                  <div class="meta">${formatCurrency(v["Valor"])}</div>
+                </div>
+                <span class="status-${v["Status"]}">${v["Status"] || ""}</span>
+              </div>`;
+              })
+              .join("")}
+          </div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  // ---------- Helpers ----------
+  function formatCurrency(val) {
+    const n = parseFloat(val);
+    if (!val || isNaN(n)) return "—";
+    return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+})();

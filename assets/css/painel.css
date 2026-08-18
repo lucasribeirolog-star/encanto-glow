@@ -1,0 +1,114 @@
+/* ===== Encanto Glow — Painel Interno ===== */
+
+.panel-body { background: var(--blush); }
+
+/* ---- Gate ---- */
+.panel-gate {
+  position: fixed; inset: 0; z-index: 3000;
+  background: linear-gradient(135deg, var(--ink), var(--rose-dark));
+  display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+}
+.panel-gate-card {
+  background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 2.6rem 2.2rem; max-width: 360px; width: 100%; text-align: center;
+}
+.panel-gate-logo { width: 64px; height: 64px; border-radius: 14px; margin: 0 auto 1.2rem; object-fit: cover; }
+.panel-gate-card h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+.panel-gate-card p { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 1.4rem; }
+.panel-gate-card input {
+  width: 100%; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid rgba(43,36,34,0.15);
+  background: var(--cream); font-family: var(--ff-body); font-size: 1rem; text-align: center; letter-spacing: 0.1em;
+}
+.panel-gate-card input:focus { outline: none; border-color: var(--gold); background: var(--white); }
+.panel-gate-error { color: #b3261e; font-size: 0.85rem; margin-top: 0.9rem; }
+
+/* ---- App shell ---- */
+.panel-app { min-height: 100vh; }
+.panel-header { background: var(--ink); padding: 1.4rem 1.6rem 0; position: sticky; top: 0; z-index: 100; }
+.panel-header-inner { display: flex; align-items: center; gap: 1rem; max-width: 1200px; margin: 0 auto 1.2rem; }
+.panel-logo { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; }
+.panel-header-inner h1 { font-size: 1.15rem; color: var(--white); flex-grow: 1; font-family: var(--ff-heading); }
+.panel-refresh { color: var(--white); border-color: rgba(255,255,255,0.3); font-size: 0.85rem; padding: 0.6rem 1.1rem; }
+.panel-refresh:hover { background: rgba(255,255,255,0.12); color: var(--white); }
+
+.panel-tabs { display: flex; gap: 0.4rem; max-width: 1200px; margin: 0 auto; overflow-x: auto; }
+.panel-tab {
+  background: none; border: none; color: rgba(255,255,255,0.65); font-family: var(--ff-body);
+  font-size: 0.9rem; font-weight: 500; padding: 0.9rem 1.2rem; cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: all .25s ease;
+}
+.panel-tab:hover { color: var(--white); }
+.panel-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.panel-main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.6rem 4rem; }
+.panel-panel { display: none; }
+.panel-panel.active { display: block; }
+
+.panel-card {
+  background: var(--white); border-radius: var(--radius); padding: 1.8rem;
+  box-shadow: var(--shadow); margin-bottom: 1.6rem;
+}
+.panel-card h2 { font-size: 1.2rem; margin-bottom: 1.4rem; }
+.panel-card-narrow { max-width: 640px; }
+
+/* ---- Calendar ---- */
+.panel-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.4rem; }
+.panel-cal-header h2 { margin: 0; text-transform: capitalize; }
+.panel-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
+.panel-cal-dow { text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; padding-bottom: 0.4rem; }
+.panel-cal-day {
+  aspect-ratio: 1/1; border-radius: 10px; background: var(--cream); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem; position: relative;
+  border: 1px solid transparent; transition: all .2s ease;
+}
+.panel-cal-day:hover { border-color: var(--gold); }
+.panel-cal-day.empty { background: none; cursor: default; }
+.panel-cal-day.empty:hover { border-color: transparent; }
+.panel-cal-day.today { border-color: var(--rose-dark); font-weight: 700; }
+.panel-cal-day.selected { background: var(--rose-dark); color: var(--white); }
+.panel-cal-badge {
+  position: absolute; top: 4px; right: 4px; background: var(--gold); color: var(--white);
+  font-size: 0.62rem; font-weight: 700; border-radius: 999px; min-width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center; padding: 0 3px;
+}
+
+.panel-list { display: flex; flex-direction: column; gap: 0.8rem; }
+.panel-list-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 0.9rem 1rem; background: var(--cream); border-radius: 10px; font-size: 0.9rem;
+}
+.panel-list-item .name { font-weight: 600; }
+.panel-list-item .meta { color: var(--ink-soft); font-size: 0.82rem; }
+
+/* ---- Table ---- */
+.panel-filter-row { display: flex; gap: 0.8rem; margin-bottom: 1.4rem; flex-wrap: wrap; }
+.panel-filter-row input, .panel-filter-row select {
+  padding: 0.7rem 1rem; border-radius: 10px; border: 1px solid rgba(43,36,34,0.15); background: var(--cream);
+  font-family: var(--ff-body); font-size: 0.9rem;
+}
+.panel-filter-row input { flex: 1; min-width: 200px; }
+.panel-table-wrap { overflow-x: auto; }
+.panel-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+.panel-table th { text-align: left; padding: 0.7rem 0.8rem; color: var(--ink-soft); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 2px solid var(--cream); white-space: nowrap; }
+.panel-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--cream); white-space: nowrap; }
+.panel-status-select { padding: 0.3rem 0.6rem; border-radius: 999px; border: 1px solid rgba(43,36,34,0.15); font-size: 0.78rem; font-weight: 600; }
+.status-Agendado { color: #a9835d; }
+.status-Concluído { color: #2e7d32; }
+.status-Cancelado { color: #b3261e; }
+
+/* ---- Patient search ---- */
+.panel-patient-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.8rem; margin-bottom: 1.2rem; }
+.panel-patient-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.4rem; }
+.panel-patient-head h3 { font-size: 1.15rem; }
+.panel-patient-head span { color: var(--ink-soft); font-size: 0.85rem; }
+.panel-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1.4rem; }
+.panel-stat { background: var(--cream); border-radius: 12px; padding: 1rem; text-align: center; }
+.panel-stat strong { display: block; font-family: var(--ff-heading); font-size: 1.4rem; color: var(--rose-dark); }
+.panel-stat span { font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.panel-empty { text-align: center; color: var(--ink-soft); padding: 2rem; font-size: 0.92rem; }
+
+@media (max-width: 640px) {
+  .panel-cal-grid { gap: 0.3rem; }
+  .panel-cal-day { font-size: 0.75rem; }
+  .panel-header-inner h1 { font-size: 0.95rem; }
+}
