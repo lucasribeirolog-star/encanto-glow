@@ -24,6 +24,18 @@
     procedureSelect.appendChild(outroOpt);
   }
 
+  const cpfInput = document.getElementById("leadCpf");
+  if (cpfInput) {
+    cpfInput.addEventListener("input", () => {
+      let digits = cpfInput.value.replace(/\D/g, "").slice(0, 11);
+      let formatted = digits;
+      if (digits.length > 9) formatted = digits.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+      else if (digits.length > 6) formatted = digits.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+      else if (digits.length > 3) formatted = digits.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+      cpfInput.value = formatted;
+    });
+  }
+
   form.querySelectorAll('input[name="indicacao"]').forEach((radio) => {
     radio.addEventListener("change", () => {
       const isSim = form.querySelector('input[name="indicacao"]:checked').value === "sim";
@@ -71,6 +83,9 @@
       telefone: form.telefone.value.trim(),
       email: form.email.value.trim(),
       cidade: form.cidade.value.trim(),
+      dataNascimento: form.dataNascimento.value,
+      cpf: form.cpf.value.trim(),
+      endereco: form.endereco.value.trim(),
       indicacao: indicacaoChecked === "sim" ? "Sim" : "Não",
       quemIndicou: indicacaoChecked === "sim" ? form.quemIndicou.value.trim() : "",
       procedimento: procedureSelect ? procedureSelect.value : "",

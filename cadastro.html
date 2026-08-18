@@ -64,6 +64,22 @@
           </div>
         </div>
 
+        <div class="form-row">
+          <div class="form-field">
+            <label for="leadBirthdate">Data de nascimento</label>
+            <input type="date" id="leadBirthdate" name="dataNascimento" required autocomplete="bday">
+          </div>
+          <div class="form-field">
+            <label for="leadCpf">CPF</label>
+            <input type="text" id="leadCpf" name="cpf" required inputmode="numeric" placeholder="000.000.000-00" maxlength="14">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="leadAddress">Endereço completo</label>
+          <input type="text" id="leadAddress" name="endereco" required autocomplete="street-address" placeholder="Rua, número, bairro, cidade - UF">
+        </div>
+
         <div class="form-field">
           <label>Houve indicação de alguém?</label>
           <div class="form-radio-group">
