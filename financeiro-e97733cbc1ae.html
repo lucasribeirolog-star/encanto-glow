@@ -8,8 +8,8 @@
 <link rel="icon" href="/assets/images/logo-encanto-glow.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=6">
-<link rel="stylesheet" href="/assets/css/painel.css?v=6">
+<link rel="stylesheet" href="/assets/css/style.css?v=7">
+<link rel="stylesheet" href="/assets/css/painel.css?v=7">
 </head>
 <body class="panel-body">
 
@@ -102,6 +102,12 @@
               <select id="finCategoria" required>
                 <option value="" disabled selected>Selecione</option>
               </select>
+              <button type="button" id="finNovaCategoriaToggle" class="btn btn-ghost" style="margin-top:0.5rem; padding:0.4rem 0.8rem; font-size:0.8rem;">+ Nova categoria</button>
+              <div id="finNovaCategoriaRow" hidden style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                <input type="text" id="finNovaCategoriaInput" placeholder="Nome da nova categoria" style="flex:1;">
+                <button type="button" id="finNovaCategoriaConfirmar" class="btn btn-primary" style="padding:0.5rem 0.9rem; font-size:0.8rem;">Adicionar</button>
+                <button type="button" id="finNovaCategoriaCancelar" class="btn btn-ghost" style="padding:0.5rem 0.9rem; font-size:0.8rem;">Cancelar</button>
+              </div>
             </div>
             <div class="form-field">
               <label for="finForma">Forma de pagamento</label>
@@ -116,8 +122,14 @@
               <input type="text" id="finDescricao" placeholder="Ex: procedimento tia silvia">
             </div>
             <div class="form-field">
-              <label for="finValor">Valor (R$)</label>
+              <label for="finValor">Valor total (R$)</label>
               <input type="number" id="finValor" min="0" step="0.01" required placeholder="0,00">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="finValorPago">Valor já pago (R$)</label>
+              <input type="number" id="finValorPago" min="0" step="0.01" placeholder="0,00">
             </div>
           </div>
           <div class="form-field">
@@ -147,7 +159,7 @@
           <table class="panel-table" id="todosTable">
             <thead>
               <tr>
-                <th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Pagamento</th><th>Valor</th><th>Observação</th><th></th>
+                <th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Pagamento</th><th>Valor</th><th>Saldo Devedor</th><th>Observação</th><th></th>
               </tr>
             </thead>
             <tbody id="todosTbody"></tbody>
@@ -159,6 +171,6 @@
   </main>
 </div>
 
-<script src="/assets/js/financeiro.js?v=6"></script>
+<script src="/assets/js/financeiro.js?v=7"></script>
 </body>
 </html>

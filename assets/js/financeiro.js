@@ -13,7 +13,7 @@
   const FORMAS_PAGAMENTO = ["Dinheiro", "Pix", "Cartão de Débito", "Cartão de Crédito", "Transferência Bancária", "Boleto"];
   const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
-  const state = { lancamentos: [], editingId: null };
+  const state = { lancamentos: [], editingId: null, valorPagoTocado: false };
 
   // ---------- Gate ----------
   const gate = document.getElementById("panelGate");
@@ -54,9 +54,82 @@
     setupForm();
     setupPeriodo();
     setupTodosFiltros();
-    document.getElementById("refreshBtn").addEventListener("click", () => loadFinanceiro());
+    setupNovaCategoria();
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      loadFinanceiro();
+      loadCategorias();
+    });
     onTipoChange();
+    loadCategorias();
     loadFinanceiro();
+  }
+
+  // ---------- Categorias customizadas ----------
+  async function loadCategorias() {
+    try {
+      const url = `${WEBHOOK_URL}?action=list_categorias_financeiro&token=${encodeURIComponent(ADMIN_TOKEN)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.ok) {
+        (json.rows || []).forEach((row) => {
+          const tipo = row["Tipo"];
+          const cat = row["Categoria"];
+          if (!tipo || !cat) return;
+          if (!CATEGORIAS[tipo]) CATEGORIAS[tipo] = [];
+          if (!CATEGORIAS[tipo].includes(cat)) CATEGORIAS[tipo].push(cat);
+        });
+        populateCategorias();
+      }
+    } catch (err) {
+      // silencioso — mantém as categorias padrão já carregadas
+    }
+  }
+
+  function setupNovaCategoria() {
+    const toggleBtn = document.getElementById("finNovaCategoriaToggle");
+    const row = document.getElementById("finNovaCategoriaRow");
+    const input = document.getElementById("finNovaCategoriaInput");
+    const confirmBtn = document.getElementById("finNovaCategoriaConfirmar");
+    const cancelBtn = document.getElementById("finNovaCategoriaCancelar");
+
+    toggleBtn.addEventListener("click", () => {
+      row.hidden = false;
+      toggleBtn.hidden = true;
+      input.value = "";
+      input.focus();
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      row.hidden = true;
+      toggleBtn.hidden = false;
+    });
+
+    async function confirmar() {
+      const nome = input.value.trim();
+      if (!nome) return;
+      const tipo = document.getElementById("finTipo").value;
+      if (!CATEGORIAS[tipo]) CATEGORIAS[tipo] = [];
+      if (!CATEGORIAS[tipo].includes(nome)) CATEGORIAS[tipo].push(nome);
+      populateCategorias();
+      document.getElementById("finCategoria").value = nome;
+      row.hidden = true;
+      toggleBtn.hidden = false;
+
+      try {
+        await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "create_categoria_financeiro", token: ADMIN_TOKEN, tipo_lancamento: tipo, categoria: nome })
+        });
+      } catch (err) {
+        // categoria já foi adicionada localmente; tenta salvar de novo na próxima sincronização
+      }
+    }
+
+    confirmBtn.addEventListener("click", confirmar);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); confirmar(); }
+    });
   }
 
   function setupTabs() {
@@ -120,8 +193,19 @@
     const feedback = document.getElementById("finFeedback");
     const cancelBtn = document.getElementById("finCancelEdit");
     const submitBtn = form.querySelector('button[type="submit"]');
+    const valorInput = document.getElementById("finValor");
+    const valorPagoInput = document.getElementById("finValorPago");
 
     cancelBtn.addEventListener("click", resetForm);
+
+    // Por padrão, Valor Pago acompanha o Valor (assume pagamento integral).
+    // Se a pessoa editar Valor Pago manualmente, para de sincronizar.
+    valorInput.addEventListener("input", () => {
+      if (!state.valorPagoTocado) valorPagoInput.value = valorInput.value;
+    });
+    valorPagoInput.addEventListener("input", () => {
+      state.valorPagoTocado = true;
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -133,6 +217,7 @@
         descricao: document.getElementById("finDescricao").value.trim(),
         formaPagamento: document.getElementById("finForma").value,
         valor: parseFloat(document.getElementById("finValor").value) || 0,
+        valorPago: parseFloat(document.getElementById("finValorPago").value) || 0,
         observacao: document.getElementById("finObs").value.trim()
       };
 
@@ -172,6 +257,7 @@
     document.getElementById("finForm").reset();
     populateCategorias();
     state.editingId = null;
+    state.valorPagoTocado = false;
     document.getElementById("finFormTitle").textContent = "Novo lançamento";
     document.getElementById("finForm").querySelector('button[type="submit"]').textContent = "Salvar lançamento";
     document.getElementById("finCancelEdit").hidden = true;
@@ -181,6 +267,7 @@
     const l = state.lancamentos.find((x) => String(x["ID"]) === String(id));
     if (!l) return;
     state.editingId = id;
+    state.valorPagoTocado = true;
     document.getElementById("finData").value = l["Data"] || "";
     document.getElementById("finTipo").value = l["Tipo"] || "Entrada";
     populateCategorias();
@@ -188,6 +275,7 @@
     document.getElementById("finDescricao").value = l["Descrição"] || "";
     document.getElementById("finForma").value = l["Forma de Pagamento"] || "";
     document.getElementById("finValor").value = l["Valor"] || "";
+    document.getElementById("finValorPago").value = l["Valor Pago"] !== undefined && l["Valor Pago"] !== "" ? l["Valor Pago"] : l["Valor"] || "";
     document.getElementById("finObs").value = l["Observação"] || "";
     document.getElementById("finFormTitle").textContent = "Editar lançamento";
     document.getElementById("finForm").querySelector('button[type="submit"]').textContent = "Salvar alterações";
@@ -297,6 +385,10 @@
     const todasCompras = sumValor(state.lancamentos.filter((l) => l["Tipo"] === "Compra"));
     const saldoAtual = todasEntradas - todasSaidas - todasCompras;
 
+    // A Receber / A Pagar: sempre acumulado de TODOS os lançamentos (saldo devedor)
+    const aReceber = state.lancamentos.filter((l) => l["Tipo"] === "Entrada").reduce((sum, l) => sum + saldoDevedor(l), 0);
+    const aPagar = state.lancamentos.filter((l) => l["Tipo"] !== "Entrada").reduce((sum, l) => sum + saldoDevedor(l), 0);
+
     grid.innerHTML = `
       <div class="fin-kpi positive"><strong>${formatCurrency(totalEntradas)}</strong><span>Total de Entradas</span></div>
       <div class="fin-kpi negative"><strong>${formatCurrency(totalSaidas)}</strong><span>Total de Saídas</span></div>
@@ -306,6 +398,8 @@
       <div class="fin-kpi"><strong>${formatCurrency(ticketMedio)}</strong><span>Ticket Médio (Entrada)</span></div>
       <div class="fin-kpi"><strong>${filtrados.length}</strong><span>Nº de Lançamentos</span></div>
       <div class="fin-kpi accent"><strong>${formatCurrency(saldoAtual)}</strong><span>Saldo Atual em Caixa</span></div>
+      <div class="fin-kpi positive"><strong>${formatCurrency(aReceber)}</strong><span>A Receber (clientes)</span></div>
+      <div class="fin-kpi negative"><strong>${formatCurrency(aPagar)}</strong><span>A Pagar (fornecedores)</span></div>
     `;
 
     renderCategoriaBreakdown(saidas.concat(compras));
@@ -314,6 +408,13 @@
 
   function sumValor(lista) {
     return lista.reduce((sum, l) => sum + (parseFloat(l["Valor"]) || 0), 0);
+  }
+
+  function saldoDevedor(l) {
+    const valor = parseFloat(l["Valor"]) || 0;
+    const pago = l["Valor Pago"] !== undefined && l["Valor Pago"] !== "" ? parseFloat(l["Valor Pago"]) || 0 : valor;
+    const saldo = valor - pago;
+    return saldo > 0 ? saldo : 0;
   }
 
   function renderCategoriaBreakdown(despesas) {
@@ -409,7 +510,7 @@
     rows = rows.slice().sort((a, b) => String(b["Data"]).localeCompare(String(a["Data"])));
 
     if (rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="panel-empty">Nenhum lançamento encontrado.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="panel-empty">Nenhum lançamento encontrado.</td></tr>`;
       return;
     }
 
@@ -417,6 +518,7 @@
       .map((l) => {
         const [y, m, d] = String(l["Data"] || "").split("-");
         const dataFmt = y ? `${d}/${m}/${y}` : "—";
+        const saldo = saldoDevedor(l);
         return `
         <tr>
           <td>${dataFmt}</td>
@@ -425,10 +527,11 @@
           <td>${escapeHtml(l["Descrição"] || "")}</td>
           <td>${escapeHtml(l["Forma de Pagamento"] || "")}</td>
           <td>${formatCurrency(l["Valor"])}</td>
+          <td>${saldo > 0 ? `<strong style="color:#b3261e;">${formatCurrency(saldo)}</strong>` : "—"}</td>
           <td>${escapeHtml(l["Observação"] || "")}</td>
           <td class="fin-actions">
-            <button type="button" data-edit="${l["ID"]}" title="Editar">✏️</button>
-            <button type="button" data-delete="${l["ID"]}" title="Excluir">🗑️</button>
+            <button type="button" class="btn btn-ghost" data-edit="${l["ID"]}" title="Editar" style="padding:0.4rem 0.7rem; font-size:0.78rem;">✏️ Editar</button>
+            <button type="button" class="btn btn-ghost" data-delete="${l["ID"]}" title="Excluir" style="padding:0.4rem 0.7rem; font-size:0.78rem; color:#b3261e; border-color:#b3261e;">🗑️ Excluir</button>
           </td>
         </tr>`;
       })
