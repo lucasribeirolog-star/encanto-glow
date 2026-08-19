@@ -111,7 +111,7 @@ const TREATMENTS = [
       { q: "Quantas sessões são necessárias?", a: "Normalmente um protocolo inicial de sessões, definido na avaliação, com manutenções periódicas." },
       { q: "Skinbooster substitui o preenchimento?", a: "Não. O skinbooster hidrata e trata a qualidade da pele; o preenchimento repõe volume." }
     ],
-    images: ["assets/images/post10.jpg"]
+    images: ["/assets/images/post10.jpg"]
   },
   {
     slug: "flacidez",
@@ -398,7 +398,7 @@ const TREATMENTS = [
       { q: "Quais técnicas podem ser usadas?", a: "Pode incluir botox, preenchimentos, bioestimuladores e outras técnicas, conforme avaliação." },
       { q: "O resultado é imediato?", a: "Alguns efeitos são vistos logo após, mas o resultado final se consolida ao longo de dias a semanas." }
     ],
-    images: ["assets/images/post2.jpg"]
+    images: ["/assets/images/post2.jpg"]
   },
   {
     slug: "botox",
@@ -435,7 +435,7 @@ const TREATMENTS = [
       { q: "Quanto tempo dura o efeito?", a: "Em média de 4 a 6 meses, variando conforme cada organismo." },
       { q: "A partir de que idade posso aplicar?", a: "Não há idade fixa; a indicação — preventiva ou corretiva — é definida na avaliação profissional." }
     ],
-    images: ["assets/images/post6.jpg", "assets/images/reel3.jpg", "assets/images/new1.jpg", "assets/images/new2.webp", "assets/images/new3.webp"]
+    images: ["/assets/images/post6.jpg", "/assets/images/reel3.jpg", "/assets/images/new1.jpg", "/assets/images/new2.webp", "/assets/images/new3.webp"]
   },
   {
     slug: "preenchimento",
@@ -471,6 +471,6 @@ const TREATMENTS = [
       { q: "Quanto tempo dura o resultado?", a: "Varia conforme a área e o produto utilizado, em média de 6 a 18 meses." },
       { q: "Preenchimento é reversível?", a: "O ácido hialurônico pode ser dissolvido com enzima específica, se necessário, mediante avaliação." }
     ],
-    images: ["assets/images/post9.jpg", "assets/images/post4.webp", "assets/images/new4.webp"]
+    images: ["/assets/images/post9.jpg", "/assets/images/post4.webp", "/assets/images/new4.webp"]
   }
 ];

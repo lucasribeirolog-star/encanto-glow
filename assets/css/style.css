@@ -99,6 +99,17 @@ h1, h2, h3, h4 { font-family: var(--ff-heading); font-weight: 600; line-height: 
 
 .nav-actions { display: flex; align-items: center; gap: 1rem; }
 
+.lang-switch { display: flex; align-items: center; gap: 0.35rem; font-family: var(--ff-body); font-size: 0.78rem; font-weight: 600; }
+.lang-switch .lang-link { padding: 0.25rem 0.5rem; border-radius: 6px; color: var(--ink-soft); letter-spacing: 0.03em; transition: background .2s ease, color .2s ease; }
+.lang-switch .lang-link:hover { background: var(--blush); color: var(--ink); }
+.lang-switch .lang-link.active { background: var(--rose); color: var(--white); }
+.header.scrolled .lang-switch .lang-link { color: var(--ink-soft); }
+
+.footer .lang-switch { justify-content: center; }
+.footer .lang-switch .lang-link { color: rgba(255,255,255,0.75); }
+.footer .lang-switch .lang-link:hover { background: rgba(255,255,255,0.12); color: var(--white); }
+.footer .lang-switch .lang-link.active { background: var(--gold); color: var(--ink); }
+
 .burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; z-index: 1001; }
 .burger span { width: 26px; height: 2px; background: var(--ink); transition: all .3s ease; }
 
