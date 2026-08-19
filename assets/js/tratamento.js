@@ -21,6 +21,23 @@
 
   document.title = treatment.name + " — Encanto Glow | Dra. Laureen Polidoro";
 
+  const seoBase = "https://encantoglow.com.br";
+  [
+    { rel: "canonical", href: `${seoBase}/tratamento.html?t=${slug}` },
+    { rel: "alternate", hreflang: "pt-BR", href: `${seoBase}/tratamento.html?t=${slug}` },
+    { rel: "alternate", hreflang: "en", href: `${seoBase}/en/tratamento.html?t=${slug}` },
+    { rel: "alternate", hreflang: "es", href: `${seoBase}/es/tratamento.html?t=${slug}` },
+    { rel: "alternate", hreflang: "x-default", href: `${seoBase}/tratamento.html?t=${slug}` },
+  ].forEach((l) => {
+    const link = document.createElement("link");
+    link.rel = l.rel;
+    if (l.hreflang) link.setAttribute("hreflang", l.hreflang);
+    link.href = l.href;
+    document.head.appendChild(link);
+  });
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute("content", treatment.short);
+
   const list = (items) => items.map((i) => `<li>${i}</li>`).join("");
   const galleryHtml = treatment.images.length
     ? `
