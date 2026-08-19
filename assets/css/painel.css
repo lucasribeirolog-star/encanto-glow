@@ -112,3 +112,32 @@
   .panel-cal-day { font-size: 0.75rem; }
   .panel-header-inner h1 { font-size: 0.95rem; }
 }
+
+/* ---- Painel Financeiro ---- */
+.fin-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.6rem; }
+.fin-kpi { background: var(--cream); border-radius: 12px; padding: 1.1rem 1.2rem; }
+.fin-kpi strong { display: block; font-family: var(--ff-heading); font-size: 1.5rem; color: var(--ink); line-height: 1.25; }
+.fin-kpi span { font-size: 0.7rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.fin-kpi.positive strong { color: #2e7d32; }
+.fin-kpi.negative strong { color: #b3261e; }
+.fin-kpi.accent strong { color: var(--rose-dark); }
+
+.tipo-badge { padding: 0.28rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.tipo-Entrada { background: #e8f5e9; color: #2e7d32; }
+.tipo-Saída { background: #fdecea; color: #b3261e; }
+.tipo-Compra { background: #fff4e0; color: #a9835d; }
+
+.fin-cat-bar-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.7rem; font-size: 0.85rem; }
+.fin-cat-bar-label { width: 190px; flex-shrink: 0; color: var(--ink-soft); }
+.fin-cat-bar-track { flex: 1; background: var(--cream); border-radius: 999px; height: 10px; overflow: hidden; }
+.fin-cat-bar-fill { height: 100%; background: var(--rose-dark); border-radius: 999px; }
+.fin-cat-bar-value { width: 100px; text-align: right; font-weight: 600; flex-shrink: 0; }
+
+.fin-actions { display: flex; gap: 0.5rem; }
+.fin-actions button { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.4rem; border-radius: 6px; }
+.fin-actions button:hover { background: var(--cream); }
+
+@media (max-width: 640px) {
+  .fin-cat-bar-label { width: 110px; font-size: 0.78rem; }
+  .fin-cat-bar-value { width: 76px; }
+}

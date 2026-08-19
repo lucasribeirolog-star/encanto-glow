@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel Financeiro — Encanto Glow</title>
+<link rel="icon" href="/assets/images/logo-encanto-glow.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css?v=6">
+<link rel="stylesheet" href="/assets/css/painel.css?v=6">
+</head>
+<body class="panel-body">
+
+<div class="panel-gate" id="panelGate">
+  <div class="panel-gate-card">
+    <img src="/assets/images/logo-encanto-glow.jpg" alt="Encanto Glow" class="panel-gate-logo">
+    <h1>Painel Financeiro</h1>
+    <p>Acesso restrito. Digite o código para continuar.</p>
+    <input type="password" id="gateCode" placeholder="Código de acesso" autocomplete="off">
+    <button type="button" class="btn btn-primary" id="gateSubmit" style="width:100%; justify-content:center; margin-top:0.8rem;">Entrar</button>
+    <p class="panel-gate-error" id="gateError" hidden>Código incorreto.</p>
+  </div>
+</div>
+
+<div class="panel-app" id="panelApp" hidden>
+  <header class="panel-header">
+    <div class="panel-header-inner">
+      <img src="/assets/images/logo-encanto-glow.jpg" alt="Encanto Glow" class="panel-logo">
+      <h1>Painel Financeiro — Encanto Glow</h1>
+      <button type="button" class="btn btn-ghost panel-refresh" id="refreshBtn">🔄 Atualizar dados</button>
+    </div>
+    <nav class="panel-tabs" id="panelTabs">
+      <button class="panel-tab active" data-tab="painel">Painel</button>
+      <button class="panel-tab" data-tab="novo">Novo Lançamento</button>
+      <button class="panel-tab" data-tab="todos">Todos os Lançamentos</button>
+    </nav>
+  </header>
+
+  <main class="panel-main">
+
+    <!-- ===== Painel (dashboard) ===== -->
+    <section class="panel-panel active" id="tab-painel">
+      <div class="panel-card">
+        <div class="panel-filter-row">
+          <select id="finPeriodo">
+            <option value="mes-atual" selected>Mês atual</option>
+            <option value="mes-passado">Mês passado</option>
+            <option value="ano">Este ano</option>
+            <option value="tudo">Todo o período</option>
+            <option value="custom">Personalizado</option>
+          </select>
+          <div id="finPeriodoCustom" hidden style="display:flex; gap:0.6rem;">
+            <input type="date" id="finPeriodoDe">
+            <input type="date" id="finPeriodoAte">
+          </div>
+        </div>
+        <div class="fin-kpi-grid" id="finKpiGrid"></div>
+      </div>
+
+      <div class="panel-card">
+        <h2>Despesas por categoria (Saídas + Compras)</h2>
+        <div id="finCatBreakdown"></div>
+      </div>
+
+      <div class="panel-card">
+        <h2>Demonstrativo mensal</h2>
+        <div class="panel-table-wrap">
+          <table class="panel-table">
+            <thead>
+              <tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Compras</th><th>Lucro Real</th><th>Margem</th></tr>
+            </thead>
+            <tbody id="finMensalTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Novo / Editar Lançamento ===== -->
+    <section class="panel-panel" id="tab-novo">
+      <div class="panel-card panel-card-narrow">
+        <h2 id="finFormTitle">Novo lançamento</h2>
+        <form id="finForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="finData">Data</label>
+              <input type="date" id="finData" required>
+            </div>
+            <div class="form-field">
+              <label for="finTipo">Tipo</label>
+              <select id="finTipo" required>
+                <option value="Entrada">Entrada</option>
+                <option value="Saída">Saída</option>
+                <option value="Compra">Compra</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="finCategoria">Categoria</label>
+              <select id="finCategoria" required>
+                <option value="" disabled selected>Selecione</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="finForma">Forma de pagamento</label>
+              <select id="finForma" required>
+                <option value="" disabled selected>Selecione</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="finDescricao">Descrição</label>
+              <input type="text" id="finDescricao" placeholder="Ex: procedimento tia silvia">
+            </div>
+            <div class="form-field">
+              <label for="finValor">Valor (R$)</label>
+              <input type="number" id="finValor" min="0" step="0.01" required placeholder="0,00">
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="finObs">Observação</label>
+            <textarea id="finObs" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Salvar lançamento</button>
+          <button type="button" class="btn btn-ghost" id="finCancelEdit" hidden style="width:100%; justify-content:center; margin-top:0.7rem;">Cancelar edição</button>
+          <p class="form-feedback" id="finFeedback" hidden></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== Todos os Lançamentos ===== -->
+    <section class="panel-panel" id="tab-todos">
+      <div class="panel-card">
+        <div class="panel-filter-row">
+          <input type="text" id="todosFiltroTexto" placeholder="Filtrar por descrição ou categoria...">
+          <select id="todosFiltroTipo">
+            <option value="">Todos os tipos</option>
+            <option value="Entrada">Entrada</option>
+            <option value="Saída">Saída</option>
+            <option value="Compra">Compra</option>
+          </select>
+        </div>
+        <div class="panel-table-wrap">
+          <table class="panel-table" id="todosTable">
+            <thead>
+              <tr>
+                <th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Pagamento</th><th>Valor</th><th>Observação</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="todosTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/assets/js/financeiro.js?v=6"></script>
+</body>
+</html>
