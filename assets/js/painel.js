@@ -5,7 +5,7 @@
   const ACCESS_CODE = "EncantoGlow2026";
   const SESSION_KEY = "encantoGlowPanelUnlocked";
 
-  const state = { agendamentos: [] };
+  const state = { agendamentos: [], editingId: null };
   let calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
   const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const DOWS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -101,14 +101,17 @@
     }
   }
 
-  // ---------- Novo Agendamento ----------
+  // ---------- Novo / Editar Agendamento ----------
   function setupAgendaForm() {
     const form = document.getElementById("agendaForm");
     const feedback = document.getElementById("agendaFeedback");
+    const cancelBtn = document.getElementById("agCancelEdit");
+
+    if (cancelBtn) cancelBtn.addEventListener("click", resetAgendaForm);
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const payload = {
-        tipo: "agendamento",
         token: ADMIN_TOKEN,
         nome: document.getElementById("agNome").value.trim(),
         telefone: document.getElementById("agTelefone").value.trim(),
@@ -120,6 +123,12 @@
         status: document.getElementById("agStatus").value,
         observacao: document.getElementById("agObs").value.trim(),
       };
+      if (state.editingId) {
+        payload.action = "update_agendamento";
+        payload.id = state.editingId;
+      } else {
+        payload.tipo = "agendamento";
+      }
 
       const btn = form.querySelector('button[type="submit"]');
       btn.disabled = true;
@@ -134,8 +143,8 @@
         const json = await res.json();
         feedback.hidden = false;
         if (json.ok) {
-          feedback.textContent = "Agendamento salvo com sucesso!";
-          form.reset();
+          feedback.textContent = state.editingId ? "Agendamento atualizado!" : "Agendamento salvo com sucesso!";
+          resetAgendaForm();
           loadAgendamentos();
         } else {
           feedback.textContent = "Erro ao salvar: " + (json.error || "tente novamente.");
@@ -146,8 +155,62 @@
       }
 
       btn.disabled = false;
-      btn.textContent = "Salvar agendamento";
+      btn.textContent = state.editingId ? "Salvar alterações" : "Salvar agendamento";
     });
+  }
+
+  function resetAgendaForm() {
+    document.getElementById("agendaForm").reset();
+    state.editingId = null;
+    const title = document.getElementById("agFormTitle");
+    if (title) title.textContent = "Novo agendamento";
+    document.getElementById("agendaForm").querySelector('button[type="submit"]').textContent = "Salvar agendamento";
+    const cancelBtn = document.getElementById("agCancelEdit");
+    if (cancelBtn) cancelBtn.hidden = true;
+  }
+
+  function editAgendamento(id) {
+    const ag = state.agendamentos.find((a) => String(a["ID"]) === String(id));
+    if (!ag) return;
+    state.editingId = id;
+    document.getElementById("agNome").value = ag["Nome"] || "";
+    document.getElementById("agTelefone").value = ag["Telefone"] || "";
+    document.getElementById("agEmail").value = ag["Email"] || "";
+    document.getElementById("agProcedimento").value = ag["Procedimento"] || "";
+    document.getElementById("agData").value = ag["Data da Consulta"] || "";
+    document.getElementById("agHorario").value = ag["Horário"] || "";
+    document.getElementById("agValor").value = ag["Valor"] || "";
+    document.getElementById("agStatus").value = ag["Status"] || "Agendado";
+    document.getElementById("agObs").value = ag["Observação"] || "";
+
+    const title = document.getElementById("agFormTitle");
+    if (title) title.textContent = "Editar agendamento";
+    document.getElementById("agendaForm").querySelector('button[type="submit"]').textContent = "Salvar alterações";
+    const cancelBtn = document.getElementById("agCancelEdit");
+    if (cancelBtn) cancelBtn.hidden = false;
+
+    document.querySelectorAll(".panel-tab").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".panel-panel").forEach((p) => p.classList.remove("active"));
+    document.querySelector('.panel-tab[data-tab="novo"]').classList.add("active");
+    document.getElementById("tab-novo").classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function deleteAgendamento(id) {
+    if (!confirm("Excluir este agendamento? Essa ação não pode ser desfeita.")) return;
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "delete_agendamento", token: ADMIN_TOKEN, id }),
+      });
+      state.agendamentos = state.agendamentos.filter((a) => String(a["ID"]) !== String(id));
+      renderCalendar();
+      renderTodos();
+      renderPacienteResultados();
+    } catch (err) {
+      alert("Não foi possível excluir agora. Tente de novo.");
+    }
   }
 
   // ---------- Calendário ----------
@@ -279,13 +342,22 @@
               <option value="Cancelado" ${ag["Status"] === "Cancelado" ? "selected" : ""}>Cancelado</option>
             </select>
           </td>
-          <td></td>
+          <td class="fin-actions">
+            <button type="button" class="btn btn-ghost" data-edit="${ag["ID"]}" title="Editar" style="padding:0.4rem 0.7rem; font-size:0.78rem;">✏️ Editar</button>
+            <button type="button" class="btn btn-ghost" data-delete="${ag["ID"]}" title="Excluir" style="padding:0.4rem 0.7rem; font-size:0.78rem; color:#b3261e; border-color:#b3261e;">🗑️ Excluir</button>
+          </td>
         </tr>`;
       })
       .join("");
 
     tbody.querySelectorAll(".panel-status-select").forEach((sel) => {
       sel.addEventListener("change", () => updateAgendamentoStatus(sel.dataset.id, sel.value));
+    });
+    tbody.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.addEventListener("click", () => editAgendamento(btn.dataset.edit));
+    });
+    tbody.querySelectorAll("[data-delete]").forEach((btn) => {
+      btn.addEventListener("click", () => deleteAgendamento(btn.dataset.delete));
     });
   }
 

@@ -8,8 +8,8 @@
 <link rel="icon" href="/assets/images/logo-encanto-glow.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=7">
-<link rel="stylesheet" href="/assets/css/painel.css?v=7">
+<link rel="stylesheet" href="/assets/css/style.css?v=8">
+<link rel="stylesheet" href="/assets/css/painel.css?v=8">
 </head>
 <body class="panel-body">
 
@@ -44,7 +44,7 @@
     <!-- ===== Novo Agendamento ===== -->
     <section class="panel-panel active" id="tab-novo">
       <div class="panel-card panel-card-narrow">
-        <h2>Novo agendamento</h2>
+        <h2 id="agFormTitle">Novo agendamento</h2>
         <form id="agendaForm">
           <div class="form-row">
             <div class="form-field">
@@ -97,6 +97,7 @@
             <textarea id="agObs" rows="3"></textarea>
           </div>
           <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Salvar agendamento</button>
+          <button type="button" class="btn btn-ghost" id="agCancelEdit" hidden style="width:100%; justify-content:center; margin-top:0.7rem;">Cancelar edição</button>
           <p class="form-feedback" id="agendaFeedback" hidden></p>
         </form>
       </div>
@@ -154,7 +155,7 @@
   </main>
 </div>
 
-<script src="/assets/js/treatments-data.js?v=7"></script>
-<script src="/assets/js/painel.js?v=7"></script>
+<script src="/assets/js/treatments-data.js?v=8"></script>
+<script src="/assets/js/painel.js?v=8"></script>
 </body>
 </html>
