@@ -1,0 +1,47 @@
+/* ===== Encanto Glow — Loja ===== */
+
+.loja-page { padding: 9.5rem 0 6rem; background: var(--blush); min-height: 100vh; }
+
+.loja-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.6rem; margin-top: 2rem; }
+.loja-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+.loja-card-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: var(--cream); }
+.loja-card-body { padding: 1.2rem 1.3rem 1.4rem; display: flex; flex-direction: column; flex-grow: 1; }
+.loja-card-body h3 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+.loja-card-body p { font-size: 0.85rem; color: var(--ink-soft); flex-grow: 1; margin-bottom: 0.9rem; }
+.loja-card-preco { font-family: var(--ff-heading); font-size: 1.25rem; color: var(--rose-dark); margin-bottom: 0.9rem; }
+.loja-card-estoque { font-size: 0.76rem; color: #b3261e; margin-bottom: 0.6rem; }
+
+/* ---- Modal ---- */
+.loja-modal {
+  position: fixed; inset: 0; z-index: 3000; display: none;
+  background: rgba(43,36,34,0.75); align-items: center; justify-content: center; padding: 1.5rem;
+}
+.loja-modal.active { display: flex; }
+.loja-modal-card {
+  background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+  max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 1.8rem;
+}
+.loja-modal-close {
+  position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.6rem;
+  cursor: pointer; color: var(--ink-soft); line-height: 1;
+}
+.loja-modal-body { display: flex; flex-direction: column; gap: 1.2rem; }
+.loja-modal-body img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 12px; background: var(--cream); }
+.loja-modal-info h2 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+.loja-modal-info p { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 0.8rem; }
+.loja-modal-preco { font-family: var(--ff-heading); font-size: 1.5rem; color: var(--rose-dark); margin-bottom: 1rem; }
+
+.loja-frete-opcao {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 0.8rem 1rem; background: var(--cream); border-radius: 10px; font-size: 0.88rem;
+  margin-bottom: 0.6rem; cursor: pointer; border: 2px solid transparent;
+}
+.loja-frete-opcao.selected { border-color: var(--rose-dark); }
+.loja-frete-opcao .nome { font-weight: 600; }
+.loja-frete-opcao .prazo { color: var(--ink-soft); font-size: 0.8rem; }
+.loja-frete-opcao .preco { font-weight: 700; color: var(--rose-dark); }
+
+@media (min-width: 560px) {
+  .loja-modal-body { flex-direction: row; }
+  .loja-modal-body img { width: 220px; max-height: none; flex-shrink: 0; }
+}

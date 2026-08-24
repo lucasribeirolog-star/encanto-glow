@@ -8,6 +8,9 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://encantoglow.com.br/"/>
   </url>
   <url>
+    <loc>https://encantoglow.com.br/loja.html</loc>
+  </url>
+  <url>
     <loc>https://encantoglow.com.br/cadastro.html</loc>
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://encantoglow.com.br/cadastro.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://encantoglow.com.br/en/cadastro.html"/>

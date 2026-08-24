@@ -5,7 +5,7 @@
   const ACCESS_CODE = "EncantoGlow2026";
   const SESSION_KEY = "encantoGlowPanelUnlocked";
 
-  const state = { agendamentos: [], editingId: null };
+  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null };
   let calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
   const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const DOWS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -51,10 +51,15 @@
     setupCalendar();
     setupTodos();
     setupPaciente();
-    document.getElementById("refreshBtn").addEventListener("click", () => loadAgendamentos(true));
+    setupProdutoForm();
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      loadAgendamentos();
+      loadProdutos();
+    });
     renderCalendar();
     renderTodos();
     loadAgendamentos();
+    loadProdutos();
   }
 
   function populateProcedimentos() {
@@ -469,5 +474,165 @@
     const div = document.createElement("div");
     div.textContent = str == null ? "" : String(str);
     return div.innerHTML;
+  }
+
+  // ---------- Produtos (Loja) ----------
+  async function loadProdutos() {
+    try {
+      const url = `${WEBHOOK_URL}?action=list_produtos&token=${encodeURIComponent(ADMIN_TOKEN)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.ok) {
+        state.produtos = json.rows || [];
+        renderProdutos();
+      }
+    } catch (err) {
+      // silencioso — mantém os dados já carregados em memória
+    }
+  }
+
+  function setupProdutoForm() {
+    const form = document.getElementById("prodForm");
+    if (!form) return;
+    const feedback = document.getElementById("prodFeedback");
+    const cancelBtn = document.getElementById("prodCancelEdit");
+
+    cancelBtn.addEventListener("click", resetProdutoForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        token: ADMIN_TOKEN,
+        nome: document.getElementById("prodNome").value.trim(),
+        descricao: document.getElementById("prodDescricao").value.trim(),
+        preco: parseFloat(document.getElementById("prodPreco").value) || 0,
+        imagemUrl: document.getElementById("prodImagem").value.trim(),
+        peso: parseFloat(document.getElementById("prodPeso").value) || 0,
+        altura: parseFloat(document.getElementById("prodAltura").value) || 0,
+        largura: parseFloat(document.getElementById("prodLargura").value) || 0,
+        comprimento: parseFloat(document.getElementById("prodComprimento").value) || 0,
+        estoque: parseInt(document.getElementById("prodEstoque").value, 10) || 0,
+        ativo: document.getElementById("prodAtivo").checked,
+      };
+      if (state.editingProdutoId) {
+        payload.action = "update_produto";
+        payload.id = state.editingProdutoId;
+      } else {
+        payload.action = "create_produto";
+      }
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = "Salvando...";
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        feedback.hidden = false;
+        if (json.ok) {
+          feedback.textContent = state.editingProdutoId ? "Produto atualizado!" : "Produto salvo com sucesso!";
+          resetProdutoForm();
+          loadProdutos();
+        } else {
+          feedback.textContent = "Erro ao salvar: " + (json.error || "tente novamente.");
+        }
+      } catch (err) {
+        feedback.hidden = false;
+        feedback.textContent = "Erro de conexão. Tente novamente.";
+      }
+
+      btn.disabled = false;
+      btn.textContent = state.editingProdutoId ? "Salvar alterações" : "Salvar produto";
+    });
+  }
+
+  function resetProdutoForm() {
+    document.getElementById("prodForm").reset();
+    document.getElementById("prodAtivo").checked = true;
+    state.editingProdutoId = null;
+    document.getElementById("prodFormTitle").textContent = "Novo produto";
+    document.getElementById("prodForm").querySelector('button[type="submit"]').textContent = "Salvar produto";
+    document.getElementById("prodCancelEdit").hidden = true;
+  }
+
+  function editProduto(id) {
+    const p = state.produtos.find((x) => String(x["ID"]) === String(id));
+    if (!p) return;
+    state.editingProdutoId = id;
+    document.getElementById("prodNome").value = p["Nome"] || "";
+    document.getElementById("prodDescricao").value = p["Descrição"] || "";
+    document.getElementById("prodPreco").value = p["Preço"] || "";
+    document.getElementById("prodImagem").value = p["Imagem URL"] || "";
+    document.getElementById("prodPeso").value = p["Peso (kg)"] || "";
+    document.getElementById("prodAltura").value = p["Altura (cm)"] || "";
+    document.getElementById("prodLargura").value = p["Largura (cm)"] || "";
+    document.getElementById("prodComprimento").value = p["Comprimento (cm)"] || "";
+    document.getElementById("prodEstoque").value = p["Estoque"] || "";
+    document.getElementById("prodAtivo").checked = p["Ativo"] === true || String(p["Ativo"]).toLowerCase() === "true";
+
+    document.getElementById("prodFormTitle").textContent = "Editar produto";
+    document.getElementById("prodForm").querySelector('button[type="submit"]').textContent = "Salvar alterações";
+    document.getElementById("prodCancelEdit").hidden = false;
+
+    document.querySelectorAll(".panel-tab").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".panel-panel").forEach((p2) => p2.classList.remove("active"));
+    document.querySelector('.panel-tab[data-tab="produtos"]').classList.add("active");
+    document.getElementById("tab-produtos").classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function deleteProduto(id) {
+    if (!confirm("Excluir este produto? Essa ação não pode ser desfeita.")) return;
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "delete_produto", token: ADMIN_TOKEN, id }),
+      });
+      state.produtos = state.produtos.filter((x) => String(x["ID"]) !== String(id));
+      renderProdutos();
+    } catch (err) {
+      alert("Não foi possível excluir agora. Tente de novo.");
+    }
+  }
+
+  function renderProdutos() {
+    const tbody = document.getElementById("prodTbody");
+    if (!tbody) return;
+
+    if (state.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="panel-empty">Nenhum produto cadastrado ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = state.produtos
+      .map((p) => {
+        const ativo = p["Ativo"] === true || String(p["Ativo"]).toLowerCase() === "true";
+        const img = p["Imagem URL"] ? `<img src="${escapeHtml(p["Imagem URL"])}" alt="" style="width:42px; height:42px; object-fit:cover; border-radius:8px;">` : "—";
+        return `
+        <tr>
+          <td>${img}</td>
+          <td>${escapeHtml(p["Nome"] || "")}</td>
+          <td>${formatCurrency(p["Preço"])}</td>
+          <td>${escapeHtml(String(p["Estoque"] != null ? p["Estoque"] : ""))}</td>
+          <td>${ativo ? "✅" : "🚫"}</td>
+          <td class="fin-actions">
+            <button type="button" class="btn btn-ghost" data-edit-produto="${p["ID"]}" style="padding:0.4rem 0.7rem; font-size:0.78rem;">✏️ Editar</button>
+            <button type="button" class="btn btn-ghost" data-delete-produto="${p["ID"]}" style="padding:0.4rem 0.7rem; font-size:0.78rem; color:#b3261e; border-color:#b3261e;">🗑️ Excluir</button>
+          </td>
+        </tr>`;
+      })
+      .join("");
+
+    tbody.querySelectorAll("[data-edit-produto]").forEach((btn) => {
+      btn.addEventListener("click", () => editProduto(btn.dataset.editProduto));
+    });
+    tbody.querySelectorAll("[data-delete-produto]").forEach((btn) => {
+      btn.addEventListener("click", () => deleteProduto(btn.dataset.deleteProduto));
+    });
   }
 })();
