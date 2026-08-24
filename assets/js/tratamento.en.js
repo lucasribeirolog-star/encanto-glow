@@ -19,7 +19,7 @@
     return;
   }
 
-  document.title = treatment.name + " — Encanto Glow | Dra. Laureen Polidoro";
+  document.title = treatment.name + " in Sorocaba, Brazil — Encanto Glow | Dra. Laureen Polidoro";
 
   const seoBase = "https://encantoglow.com.br";
   [
@@ -36,7 +36,7 @@
     document.head.appendChild(link);
   });
   const metaDesc = document.querySelector('meta[name="description"]');
-  if (metaDesc) metaDesc.setAttribute("content", treatment.short);
+  if (metaDesc) metaDesc.setAttribute("content", treatment.short + " Aesthetic clinic in Sorocaba, Brazil, with Dra. Laureen Polidoro.");
 
   if (treatment.faq && treatment.faq.length) {
     const faqSchema = document.createElement("script");
