@@ -58,7 +58,7 @@ const feedTrack = document.getElementById('feedTrack');
 if (feedTrack && typeof INSTAGRAM_FEED !== 'undefined') {
   feedTrack.innerHTML = INSTAGRAM_FEED.map(post => `
     <a class="feed-item" href="${post.href}" target="_blank" rel="noopener">
-      <img src="${post.img}" alt="Post Instagram">
+      <img loading="lazy" src="${post.img}" alt="Post Instagram">
     </a>
   `).join('');
   Array.from(feedTrack.children).forEach(item => {

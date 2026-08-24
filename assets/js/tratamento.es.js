@@ -38,6 +38,21 @@
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute("content", treatment.short);
 
+  if (treatment.faq && treatment.faq.length) {
+    const faqSchema = document.createElement("script");
+    faqSchema.type = "application/ld+json";
+    faqSchema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: treatment.faq.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+    document.head.appendChild(faqSchema);
+  }
+
   const list = (items) => items.map((i) => `<li>${i}</li>`).join("");
   const galleryHtml = treatment.images.length
     ? `
@@ -52,7 +67,7 @@
             .map(
               (img) => `
             <div class="result-card reveal" data-lightbox="${img}">
-              <img src="${img}" alt="${treatment.name} — Encanto Glow">
+              <img loading="lazy" src="${img}" alt="${treatment.name} — Encanto Glow">
               <div class="result-overlay"><span>${treatment.name}</span></div>
             </div>`
             )
