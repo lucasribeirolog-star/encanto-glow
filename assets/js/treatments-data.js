@@ -3,6 +3,7 @@ const TREATMENTS = [
   {
     slug: "limpeza-de-pele",
     icon: "🧼",
+    heroImage: "/assets/images/hero-limpeza-de-pele.jpg",
     name: "Limpeza de Pele Avançada",
     short: "Higienização profunda, extração e renovação da pele com tecnologia e cuidado profissional.",
     intro: "A limpeza de pele avançada vai além da limpeza tradicional, combinando higienização profunda, esfoliação, extração de cravos e impurezas e aplicação de ativos calmantes. É a base para uma pele mais saudável, uniforme e preparada para outros tratamentos estéticos.",

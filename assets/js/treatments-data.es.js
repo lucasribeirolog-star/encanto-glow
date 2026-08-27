@@ -3,6 +3,7 @@ const TREATMENTS = [
   {
     slug: "limpeza-de-pele",
     icon: "🧼",
+    heroImage: "/assets/images/hero-limpeza-de-pele.jpg",
     name: "Limpieza Facial Avanzada",
     short: "Higienización profunda, extracción y renovación de la piel con tecnología y cuidado profesional.",
     intro: "La limpieza facial avanzada va más allá de la limpieza tradicional, combinando higienización profunda, exfoliación, extracción de comedones e impurezas y aplicación de activos calmantes. Es la base para una piel más saludable, uniforme y preparada para otros tratamientos estéticos.",

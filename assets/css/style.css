@@ -409,6 +409,13 @@ h1, h2, h3, h4 { font-family: var(--ff-heading); font-weight: 600; line-height: 
   content: ""; position: absolute; inset: 0;
   background: radial-gradient(circle at 20% 20%, rgba(203,163,106,0.25), transparent 55%);
 }
+.tmt-hero.has-image {
+  background-size: cover;
+  background-position: center 30%;
+}
+.tmt-hero.has-image::before {
+  background: linear-gradient(180deg, rgba(20,15,13,0.78) 0%, rgba(20,15,13,0.6) 45%, rgba(20,15,13,0.85) 100%);
+}
 .tmt-hero-inner { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; }
 .tmt-hero .eyebrow { color: var(--gold); }
 .tmt-hero h1 { color: var(--white); font-size: clamp(2rem, 4vw, 2.9rem); margin: 0.6rem 0 1rem; }

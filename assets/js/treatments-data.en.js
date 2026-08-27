@@ -3,6 +3,7 @@ const TREATMENTS = [
   {
     slug: "limpeza-de-pele",
     icon: "🧼",
+    heroImage: "/assets/images/hero-limpeza-de-pele.jpg",
     name: "Advanced Facial Cleansing",
     short: "Deep cleansing, extraction and skin renewal with technology and professional care.",
     intro: "Advanced facial cleansing goes beyond a traditional cleanse, combining deep cleansing, exfoliation, extraction of blackheads and impurities, and application of soothing active ingredients. It's the foundation for healthier, more even skin that's ready for other aesthetic treatments.",

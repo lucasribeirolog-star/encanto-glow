@@ -77,8 +77,11 @@
     </section>`
     : "";
 
+  const heroStyle = treatment.heroImage ? ` style="background-image:url('${treatment.heroImage}')"` : "";
+  const heroClass = treatment.heroImage ? "tmt-hero has-image" : "tmt-hero";
+
   root.innerHTML = `
-    <section class="tmt-hero">
+    <section class="${heroClass}"${heroStyle}>
       <div class="container tmt-hero-inner reveal">
         <a href="index.html#servicios" class="tmt-back">&larr; Todos los tratamientos</a>
         <div class="tmt-icon">${treatment.icon}</div>
