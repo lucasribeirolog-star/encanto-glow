@@ -43,6 +43,7 @@ const TREATMENTS = [
   {
     slug: "rejuvenescimento-facial",
     icon: "✨",
+    heroImage: "/assets/images/hero-rejuvenescimento-facial.jpg",
     name: "Facial Rejuvenation",
     short: "Combined protocols to stimulate collagen, firmness and radiance, softening the signs of time.",
     intro: "Facial rejuvenation brings together techniques that stimulate collagen and elastin production, working on firmness, luminosity and skin tone evenness. The protocol is personalized according to each patient's needs.",
@@ -80,6 +81,7 @@ const TREATMENTS = [
   {
     slug: "skinbooster",
     icon: "💧",
+    heroImage: "/assets/images/hero-skinbooster.jpg",
     name: "Skinbooster",
     short: "Deep injectable hydration for more radiant, firm skin with healthy glow.",
     intro: "Skinbooster is an injectable treatment based on low-density hyaluronic acid that promotes deep, long-lasting skin hydration, improving radiance, elasticity and glow.",

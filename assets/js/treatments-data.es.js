@@ -43,6 +43,7 @@ const TREATMENTS = [
   {
     slug: "rejuvenescimento-facial",
     icon: "✨",
+    heroImage: "/assets/images/hero-rejuvenescimento-facial.jpg",
     name: "Rejuvenecimiento Facial",
     short: "Protocolos combinados para estimular colágeno, firmeza y luminosidad, suavizando los signos del tiempo.",
     intro: "El rejuvenecimiento facial reúne técnicas que estimulan la producción de colágeno y elastina, actuando en la firmeza, luminosidad y uniformidad de la piel. El protocolo se personaliza según la necesidad de cada paciente.",
@@ -80,6 +81,7 @@ const TREATMENTS = [
   {
     slug: "skinbooster",
     icon: "💧",
+    heroImage: "/assets/images/hero-skinbooster.jpg",
     name: "Skinbooster",
     short: "Hidratación profunda inyectable para una piel más luminosa, firme y con brillo saludable.",
     intro: "El skinbooster es un tratamiento inyectable a base de ácido hialurónico de baja densidad, que promueve una hidratación profunda y duradera de la piel, mejorando el brillo, la elasticidad y la luminosidad.",
