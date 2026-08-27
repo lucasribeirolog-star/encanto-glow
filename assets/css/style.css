@@ -105,6 +105,14 @@ h1, h2, h3, h4 { font-family: var(--ff-heading); font-weight: 600; line-height: 
 .lang-switch .lang-link.active { background: var(--rose); color: var(--white); }
 .header.scrolled .lang-switch .lang-link { color: var(--ink-soft); }
 
+.tmt-page .header:not(.scrolled) .nav-links a,
+.tmt-page .header:not(.scrolled) .lang-switch .lang-link,
+.tmt-page .header:not(.scrolled) .btn-ghost {
+  color: var(--white);
+}
+.tmt-page .header:not(.scrolled) .btn-ghost { border-color: rgba(255,255,255,0.4); }
+.tmt-page .header:not(.scrolled) .burger span { background: var(--white); }
+
 .footer .lang-switch { justify-content: center; }
 .footer .lang-switch .lang-link { color: rgba(255,255,255,0.75); }
 .footer .lang-switch .lang-link:hover { background: rgba(255,255,255,0.12); color: var(--white); }
