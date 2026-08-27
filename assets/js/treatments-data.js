@@ -117,6 +117,7 @@ const TREATMENTS = [
   {
     slug: "flacidez",
     icon: "🪡",
+    heroImage: "/assets/images/hero-flacidez.jpg",
     name: "Flacidez",
     short: "Tratamentos para estimular firmeza e melhorar o aspecto da pele flácida no rosto e corpo.",
     intro: "Os protocolos para flacidez atuam estimulando a produção de colágeno e melhorando a firmeza e sustentação da pele, com técnicas selecionadas conforme o grau de flacidez e a área tratada.",
@@ -153,6 +154,7 @@ const TREATMENTS = [
   {
     slug: "manchas-no-rosto",
     icon: "☀️",
+    heroImage: "/assets/images/hero-manchas-no-rosto.jpg",
     name: "Manchas no Rosto",
     short: "Protocolos para uniformizar o tom da pele e amenizar manchas solares, hormonais ou de idade.",
     intro: "O tratamento de manchas no rosto é indicado para uniformizar o tom da pele, atuando em manchas de origem solar, hormonal (melasma) ou pós-inflamatórias, sempre com avaliação individual da causa.",
@@ -190,6 +192,7 @@ const TREATMENTS = [
   {
     slug: "mesoterapia-capilar",
     icon: "💆‍♀️",
+    heroImage: "/assets/images/hero-mesoterapia-capilar.jpg",
     name: "Mesoterapia Capilar",
     short: "Estímulo do couro cabeludo com ativos injetáveis para fortalecer e reduzir a queda dos fios.",
     intro: "A mesoterapia capilar consiste na aplicação de ativos diretamente no couro cabeludo, estimulando a microcirculação e fortalecendo os folículos capilares, auxiliando no combate à queda e no fortalecimento dos fios.",
@@ -226,6 +229,7 @@ const TREATMENTS = [
   {
     slug: "estrias",
     icon: "〰️",
+    heroImage: "/assets/images/hero-estrias.jpg",
     name: "Estrias",
     short: "Tratamentos para melhorar o aspecto de estrias, estimulando a regeneração da pele.",
     intro: "O tratamento de estrias atua estimulando a regeneração da pele e a produção de colágeno na área afetada, melhorando a textura, a cor e o aspecto geral das estrias, sejam elas rosadas ou brancas.",
@@ -262,6 +266,7 @@ const TREATMENTS = [
   {
     slug: "celulite",
     icon: "🧊",
+    heroImage: "/assets/images/hero-celulite.jpg",
     name: "Celulite",
     short: "Protocolos para melhorar a textura da pele e o aspecto da celulite (fibroedema geloide).",
     intro: "O tratamento de celulite (fibroedema geloide) combina técnicas que atuam na circulação, na textura da pele e na estrutura do tecido, melhorando o aspecto da chamada 'pele de casca de laranja'.",
@@ -297,6 +302,7 @@ const TREATMENTS = [
   {
     slug: "gordura-localizada",
     icon: "🔥",
+    heroImage: "/assets/images/hero-gordura-localizada.jpg",
     name: "Gordura Localizada",
     short: "Tratamentos para reduzir medidas em áreas de acúmulo de gordura localizada.",
     intro: "Os protocolos para gordura localizada auxiliam na redução de medidas em áreas específicas de acúmulo de gordura resistente à dieta e exercício, sempre respeitando as indicações e limites de cada técnica.",

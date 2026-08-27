@@ -117,6 +117,7 @@ const TREATMENTS = [
   {
     slug: "flacidez",
     icon: "🪡",
+    heroImage: "/assets/images/hero-flacidez.jpg",
     name: "Flacidez",
     short: "Tratamientos para estimular la firmeza y mejorar el aspecto de la piel flácida en rostro y cuerpo.",
     intro: "Los protocolos para la flacidez actúan estimulando la producción de colágeno y mejorando la firmeza y sostén de la piel, con técnicas seleccionadas según el grado de flacidez y el área tratada.",
@@ -153,6 +154,7 @@ const TREATMENTS = [
   {
     slug: "manchas-no-rosto",
     icon: "☀️",
+    heroImage: "/assets/images/hero-manchas-no-rosto.jpg",
     name: "Manchas en el Rostro",
     short: "Protocolos para uniformizar el tono de la piel y atenuar manchas solares, hormonales o de edad.",
     intro: "El tratamiento de manchas en el rostro está indicado para uniformizar el tono de la piel, actuando sobre manchas de origen solar, hormonal (melasma) o posinflamatorias, siempre con evaluación individual de la causa.",
@@ -190,6 +192,7 @@ const TREATMENTS = [
   {
     slug: "mesoterapia-capilar",
     icon: "💆‍♀️",
+    heroImage: "/assets/images/hero-mesoterapia-capilar.jpg",
     name: "Mesoterapia Capilar",
     short: "Estímulo del cuero cabelludo con activos inyectables para fortalecer y reducir la caída del cabello.",
     intro: "La mesoterapia capilar consiste en la aplicación de activos directamente en el cuero cabelludo, estimulando la microcirculación y fortaleciendo los folículos capilares, ayudando a combatir la caída y fortalecer el cabello.",
@@ -226,6 +229,7 @@ const TREATMENTS = [
   {
     slug: "estrias",
     icon: "〰️",
+    heroImage: "/assets/images/hero-estrias.jpg",
     name: "Estrías",
     short: "Tratamientos para mejorar el aspecto de las estrías, estimulando la regeneración de la piel.",
     intro: "El tratamiento de estrías actúa estimulando la regeneración de la piel y la producción de colágeno en la zona afectada, mejorando la textura, el color y el aspecto general de las estrías, ya sean rosadas o blancas.",
@@ -262,6 +266,7 @@ const TREATMENTS = [
   {
     slug: "celulite",
     icon: "🧊",
+    heroImage: "/assets/images/hero-celulite.jpg",
     name: "Celulitis",
     short: "Protocolos para mejorar la textura de la piel y el aspecto de la celulitis.",
     intro: "El tratamiento de celulitis combina técnicas que actúan en la circulación, en la textura de la piel y en la estructura del tejido, mejorando el aspecto de la llamada 'piel de naranja'.",
@@ -297,6 +302,7 @@ const TREATMENTS = [
   {
     slug: "gordura-localizada",
     icon: "🔥",
+    heroImage: "/assets/images/hero-gordura-localizada.jpg",
     name: "Grasa Localizada",
     short: "Tratamientos para reducir medidas en áreas de acumulación de grasa localizada.",
     intro: "Los protocolos para grasa localizada ayudan a reducir medidas en áreas específicas de acumulación de grasa resistente a la dieta y el ejercicio, siempre respetando las indicaciones y límites de cada técnica.",

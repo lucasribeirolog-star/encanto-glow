@@ -117,6 +117,7 @@ const TREATMENTS = [
   {
     slug: "flacidez",
     icon: "🪡",
+    heroImage: "/assets/images/hero-flacidez.jpg",
     name: "Skin Laxity",
     short: "Treatments to stimulate firmness and improve the appearance of sagging skin on face and body.",
     intro: "Skin laxity protocols work by stimulating collagen production and improving skin firmness and support, with techniques selected according to the degree of laxity and the treated area.",
@@ -153,6 +154,7 @@ const TREATMENTS = [
   {
     slug: "manchas-no-rosto",
     icon: "☀️",
+    heroImage: "/assets/images/hero-manchas-no-rosto.jpg",
     name: "Facial Pigmentation",
     short: "Protocols to even out skin tone and fade sun, hormonal or age-related spots.",
     intro: "Facial pigmentation treatment is indicated to even out skin tone, acting on spots of sun, hormonal (melasma) or post-inflammatory origin, always with an individual assessment of the cause.",
@@ -190,6 +192,7 @@ const TREATMENTS = [
   {
     slug: "mesoterapia-capilar",
     icon: "💆‍♀️",
+    heroImage: "/assets/images/hero-mesoterapia-capilar.jpg",
     name: "Hair Mesotherapy",
     short: "Scalp stimulation with injectable actives to strengthen hair and reduce hair loss.",
     intro: "Hair mesotherapy involves applying active ingredients directly to the scalp, stimulating microcirculation and strengthening hair follicles, helping fight hair loss and strengthen the hair.",
@@ -226,6 +229,7 @@ const TREATMENTS = [
   {
     slug: "estrias",
     icon: "〰️",
+    heroImage: "/assets/images/hero-estrias.jpg",
     name: "Stretch Marks",
     short: "Treatments to improve the appearance of stretch marks by stimulating skin regeneration.",
     intro: "Stretch mark treatment works by stimulating skin regeneration and collagen production in the affected area, improving the texture, color and overall appearance of stretch marks, whether pink or white.",
@@ -262,6 +266,7 @@ const TREATMENTS = [
   {
     slug: "celulite",
     icon: "🧊",
+    heroImage: "/assets/images/hero-celulite.jpg",
     name: "Cellulite",
     short: "Protocols to improve skin texture and the appearance of cellulite.",
     intro: "Cellulite treatment combines techniques that act on circulation, skin texture and tissue structure, improving the appearance of the so-called 'orange peel skin'.",
@@ -297,6 +302,7 @@ const TREATMENTS = [
   {
     slug: "gordura-localizada",
     icon: "🔥",
+    heroImage: "/assets/images/hero-gordura-localizada.jpg",
     name: "Localized Fat",
     short: "Treatments to reduce measurements in areas with localized fat buildup.",
     intro: "Localized fat protocols help reduce measurements in specific areas of fat buildup resistant to diet and exercise, always respecting the indications and limits of each technique.",
