@@ -340,6 +340,7 @@ const TREATMENTS = [
   {
     slug: "lipo-de-papada",
     icon: "🔻",
+    heroImage: "/assets/images/hero-lipo-de-papada.jpg",
     name: "Lipo de Papada",
     short: "Procedimiento para reducir la grasa en la zona del mentón y mejorar el contorno facial.",
     intro: "La lipo de papada es un procedimiento orientado a reducir la grasa localizada en la zona del mentón y el cuello, contribuyendo a un contorno facial más definido y armónico.",
@@ -375,6 +376,7 @@ const TREATMENTS = [
   {
     slug: "harmonizacao-orofacial",
     icon: "💫",
+    heroImage: "/assets/images/hero-harmonizacao-orofacial.jpg",
     name: "Armonización Orofacial",
     short: "Conjunto de técnicas para equilibrar las proporciones del rostro de forma natural e individualizada.",
     intro: "La armonización orofacial reúne diferentes técnicas — como toxina botulínica, rellenos y bioestimuladores — para equilibrar las proporciones faciales, corregir asimetrías y realzar la belleza natural de cada paciente.",
@@ -412,6 +414,7 @@ const TREATMENTS = [
   {
     slug: "botox",
     icon: "💉",
+    heroImage: "/assets/images/hero-botox.jpg",
     name: "Botox (Toxina Botulínica)",
     short: "Toxina botulínica para prevenir y suavizar arrugas dinámicas, con resultado natural.",
     intro: "La aplicación de toxina botulínica (Botox) relaja la musculatura responsable de las arrugas de expresión, previniendo y suavizando líneas en zonas como la frente, la glabela (entre las cejas) y las patas de gallo.",
@@ -449,6 +452,7 @@ const TREATMENTS = [
   {
     slug: "preenchimento",
     icon: "🌹",
+    heroImage: "/assets/images/hero-preenchimento.jpg",
     name: "Relleno",
     short: "Relleno dérmico para restaurar volumen, contornos y un aspecto más joven y natural.",
     intro: "El relleno dérmico, generalmente a base de ácido hialurónico, repone el volumen perdido con el tiempo, redefine contornos y suaviza surcos, proporcionando un aspecto más joven, equilibrado y natural.",

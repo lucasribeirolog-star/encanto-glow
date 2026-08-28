@@ -340,6 +340,7 @@ const TREATMENTS = [
   {
     slug: "lipo-de-papada",
     icon: "🔻",
+    heroImage: "/assets/images/hero-lipo-de-papada.jpg",
     name: "Lipo de Papada",
     short: "Procedimento para reduzir a gordura na região do queixo e melhorar o contorno facial.",
     intro: "A lipo de papada é um procedimento voltado para a redução de gordura localizada na região do queixo e pescoço, contribuindo para um contorno facial mais definido e harmônico.",
@@ -375,6 +376,7 @@ const TREATMENTS = [
   {
     slug: "harmonizacao-orofacial",
     icon: "💫",
+    heroImage: "/assets/images/hero-harmonizacao-orofacial.jpg",
     name: "Harmonização Orofacial",
     short: "Conjunto de técnicas para equilibrar as proporções do rosto de forma natural e individualizada.",
     intro: "A harmonização orofacial reúne diferentes técnicas — como toxina botulínica, preenchimentos e bioestimuladores — para equilibrar as proporções faciais, corrigir assimetrias e valorizar a beleza natural de cada paciente.",
@@ -412,6 +414,7 @@ const TREATMENTS = [
   {
     slug: "botox",
     icon: "💉",
+    heroImage: "/assets/images/hero-botox.jpg",
     name: "Botox (Toxina Botulínica)",
     short: "Toxina botulínica para prevenir e suavizar rugas dinâmicas, com resultado natural.",
     intro: "A aplicação de toxina botulínica (Botox) relaxa a musculatura responsável pelas rugas de expressão, prevenindo e suavizando linhas em áreas como testa, glabela (entre as sobrancelhas) e pés de galinha.",
@@ -449,6 +452,7 @@ const TREATMENTS = [
   {
     slug: "preenchimento",
     icon: "🌹",
+    heroImage: "/assets/images/hero-preenchimento.jpg",
     name: "Preenchimento",
     short: "Preenchimento dérmico para restaurar volume, contornos e um aspecto mais jovem e natural.",
     intro: "O preenchimento dérmico, geralmente à base de ácido hialurônico, repõe o volume perdido com o tempo, redefine contornos e suaviza sulcos, proporcionando um aspecto mais jovem, equilibrado e natural.",

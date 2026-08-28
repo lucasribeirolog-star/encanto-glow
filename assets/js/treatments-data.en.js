@@ -340,6 +340,7 @@ const TREATMENTS = [
   {
     slug: "lipo-de-papada",
     icon: "🔻",
+    heroImage: "/assets/images/hero-lipo-de-papada.jpg",
     name: "Double Chin Lipo",
     short: "Procedure to reduce fat in the chin area and improve facial contour.",
     intro: "Double chin lipo is a procedure aimed at reducing localized fat in the chin and neck area, contributing to a more defined, harmonious facial contour.",
@@ -375,6 +376,7 @@ const TREATMENTS = [
   {
     slug: "harmonizacao-orofacial",
     icon: "💫",
+    heroImage: "/assets/images/hero-harmonizacao-orofacial.jpg",
     name: "Orofacial Harmonization",
     short: "A set of techniques to balance facial proportions naturally and individually.",
     intro: "Orofacial harmonization brings together different techniques — such as botulinum toxin, fillers and biostimulators — to balance facial proportions, correct asymmetries and enhance each patient's natural beauty.",
@@ -412,6 +414,7 @@ const TREATMENTS = [
   {
     slug: "botox",
     icon: "💉",
+    heroImage: "/assets/images/hero-botox.jpg",
     name: "Botox (Botulinum Toxin)",
     short: "Botulinum toxin to prevent and soften dynamic wrinkles, with a natural result.",
     intro: "Botulinum toxin (Botox) application relaxes the muscles responsible for expression wrinkles, preventing and softening lines in areas such as the forehead, glabella (between the eyebrows) and crow's feet.",
@@ -449,6 +452,7 @@ const TREATMENTS = [
   {
     slug: "preenchimento",
     icon: "🌹",
+    heroImage: "/assets/images/hero-preenchimento.jpg",
     name: "Dermal Filler",
     short: "Dermal filler to restore volume, contours and a more youthful, natural look.",
     intro: "Dermal filler, usually hyaluronic acid based, replaces volume lost over time, redefines contours and softens grooves, providing a more youthful, balanced and natural appearance.",
