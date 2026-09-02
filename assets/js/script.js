@@ -23,8 +23,8 @@ document.getElementById('year').textContent = new Date().getFullYear();
 // Renderiza os cards de tratamentos (página inicial)
 const servicesGrid = document.getElementById('servicesGrid');
 if (servicesGrid && typeof TREATMENTS !== 'undefined') {
-  servicesGrid.innerHTML = TREATMENTS.map(t => `
-    <a href="tratamento.html?t=${t.slug}" class="service-card reveal">
+  servicesGrid.innerHTML = TREATMENTS.map((t, i) => `
+    <a href="tratamento.html?t=${t.slug}" class="service-card reveal-left" style="transition-delay:${(i % 3) * 0.12}s">
       <div class="service-icon">${t.icon}</div>
       <h3>${t.name}</h3>
       <p>${t.short}</p>
@@ -34,7 +34,7 @@ if (servicesGrid && typeof TREATMENTS !== 'undefined') {
 }
 
 // Reveal on scroll
-const revealEls = document.querySelectorAll('.reveal');
+const revealEls = document.querySelectorAll('.reveal, .reveal-left');
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
