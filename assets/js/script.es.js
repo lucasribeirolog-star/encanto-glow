@@ -45,12 +45,74 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 revealEls.forEach(el => revealObserver.observe(el));
 
-// Carrossel contínuo de resultados (duplica os cards para loop sem emenda)
+// Lightbox para galeria de resultados — función reaprovechable porque los
+// cards de resultado de la home llegan después, vía fetch (ver abajo)
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxClose = document.getElementById('lightboxClose');
+
+function setupLightbox() {
+  if (!(lightbox && lightboxImg && lightboxClose)) return;
+  document.querySelectorAll('[data-lightbox]').forEach(card => {
+    card.addEventListener('click', () => {
+      lightboxImg.src = card.getAttribute('data-lightbox');
+      lightbox.classList.add('active');
+    });
+  });
+}
+
+if (lightbox && lightboxImg && lightboxClose) {
+  setupLightbox();
+  lightboxClose.addEventListener('click', () => lightbox.classList.remove('active'));
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) lightbox.classList.remove('active');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') lightbox.classList.remove('active');
+  });
+}
+
+// Carrossel contínuo de resultados — busca as fotos cadastradas no painel
+// interno e duplica os cards pra fazer o loop sem emenda.
+// Se o backend ainda não tiver a aba "Resultados" (ou a busca falhar por
+// qualquer motivo), cai pra essa lista fixa, pra a seção nunca ficar vazia.
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_1KixFPNg8exeGzPzu3WaCbRQlt8gB-iIUmZNfFyKqZ5u7aEq42gd_EAG2lzFZ46e/exec";
+const FALLBACK_RESULTS = [
+  { imagemUrl: '/assets/images/post4.webp', tag: 'Antes / Después', legenda: 'Armonización facial' },
+  { imagemUrl: '/assets/images/post3.jpg', tag: 'Antes / Después', legenda: 'Resultado increíble' },
+  { imagemUrl: '/assets/images/reel3.jpg', tag: 'Antes / Después', legenda: 'Transformación real' },
+  { imagemUrl: '/assets/images/post9.jpg', tag: 'Antes / Después', legenda: 'Relleno labial' },
+  { imagemUrl: '/assets/images/post1.jpg', tag: 'Antes / Después', legenda: 'Relleno labial' },
+  { imagemUrl: '/assets/images/new1.jpg', tag: 'Antes / Después', legenda: 'Botox — frente' },
+  { imagemUrl: '/assets/images/new2.webp', tag: 'Antes / Después', legenda: 'Rejuvenecimiento facial' },
+  { imagemUrl: '/assets/images/new3.webp', tag: '2 semanas después del Botox', legenda: 'Botox' },
+  { imagemUrl: '/assets/images/new4.webp', tag: 'Antes / Después', legenda: 'Relleno labial' },
+];
 const resultsTrack = document.getElementById('resultsTrack');
 if (resultsTrack) {
-  Array.from(resultsTrack.children).forEach(card => {
-    resultsTrack.appendChild(card.cloneNode(true));
-  });
+  const renderResults = (rows) => {
+    resultsTrack.innerHTML = rows.map(r => `
+      <div class="result-card" data-lightbox="${r.imagemUrl}">
+        <span class="result-tag">${r.tag || ''}</span>
+        <img loading="lazy" src="${r.imagemUrl}" alt="${r.legenda || 'Resultado'}">
+        <div class="result-overlay"><span>${r.legenda || ''}</span></div>
+      </div>
+    `).join('');
+    Array.from(resultsTrack.children).forEach(card => {
+      resultsTrack.appendChild(card.cloneNode(true));
+    });
+    setupLightbox();
+  };
+  fetch(`${WEBHOOK_URL}?action=list_resultados`)
+    .then(res => res.json())
+    .then(json => {
+      const rows = (json.rows || [])
+        .slice()
+        .sort((a, b) => (a['Ordem'] || 0) - (b['Ordem'] || 0))
+        .map(r => ({ imagemUrl: r['Imagem URL'], tag: r['Tag'], legenda: r['Legenda'] }));
+      renderResults(rows.length ? rows : FALLBACK_RESULTS);
+    })
+    .catch(() => renderResults(FALLBACK_RESULTS));
 }
 
 // Carrossel contínuo do feed do Instagram
@@ -63,26 +125,5 @@ if (feedTrack && typeof INSTAGRAM_FEED !== 'undefined') {
   `).join('');
   Array.from(feedTrack.children).forEach(item => {
     feedTrack.appendChild(item.cloneNode(true));
-  });
-}
-
-// Lightbox para galeria de resultados
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = document.getElementById('lightboxImg');
-const lightboxClose = document.getElementById('lightboxClose');
-
-if (lightbox && lightboxImg && lightboxClose) {
-  document.querySelectorAll('[data-lightbox]').forEach(card => {
-    card.addEventListener('click', () => {
-      lightboxImg.src = card.getAttribute('data-lightbox');
-      lightbox.classList.add('active');
-    });
-  });
-  lightboxClose.addEventListener('click', () => lightbox.classList.remove('active'));
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox) lightbox.classList.remove('active');
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') lightbox.classList.remove('active');
   });
 }

@@ -5,7 +5,7 @@
   const ACCESS_CODE = "EncantoGlow2026";
   const SESSION_KEY = "encantoGlowPanelUnlocked";
 
-  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null };
+  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null, resultados: [], editingResultadoId: null };
   let calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
   const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const DOWS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -52,14 +52,17 @@
     setupTodos();
     setupPaciente();
     setupProdutoForm();
+    setupResultadoForm();
     document.getElementById("refreshBtn").addEventListener("click", () => {
       loadAgendamentos();
       loadProdutos();
+      loadResultados();
     });
     renderCalendar();
     renderTodos();
     loadAgendamentos();
     loadProdutos();
+    loadResultados();
   }
 
   function populateProcedimentos() {
@@ -633,6 +636,235 @@
     });
     tbody.querySelectorAll("[data-delete-produto]").forEach((btn) => {
       btn.addEventListener("click", () => deleteProduto(btn.dataset.deleteProduto));
+    });
+  }
+
+  // ---------- Resultados (Fotos) ----------
+
+  // Reduz a foto (a maioria dos celulares tira em 3-4MB+) para no máximo
+  // 1600px de largura e converte para JPEG, pra não pesar demais no envio
+  // nem no armazenamento do Drive. Devolve uma data URL ("data:image/jpeg;base64,...").
+  function compressImageFile(file, maxWidth, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round(height * (maxWidth / width));
+            width = maxWidth;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Não foi possível ler o arquivo."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function loadResultados() {
+    try {
+      const url = `${WEBHOOK_URL}?action=list_resultados&token=${encodeURIComponent(ADMIN_TOKEN)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.ok) {
+        state.resultados = json.rows || [];
+        renderResultados();
+      }
+    } catch (err) {
+      // silencioso — mantém os dados já carregados em memória
+    }
+  }
+
+  function setupResultadoForm() {
+    const form = document.getElementById("resForm");
+    if (!form) return;
+    const feedback = document.getElementById("resFeedback");
+    const cancelBtn = document.getElementById("resCancelEdit");
+    const fileInput = document.getElementById("resArquivo");
+    const previewWrap = document.getElementById("resPreviewWrap");
+    const previewImg = document.getElementById("resPreview");
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        previewWrap.hidden = true;
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        previewWrap.hidden = false;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    cancelBtn.addEventListener("click", resetResultadoForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      feedback.hidden = true;
+
+      const payload = {
+        token: ADMIN_TOKEN,
+        tag: document.getElementById("resTag").value.trim(),
+        legenda: document.getElementById("resLegenda").value.trim(),
+        ordem: parseInt(document.getElementById("resOrdem").value, 10) || 0,
+        ativo: document.getElementById("resAtivo").checked,
+      };
+
+      const file = fileInput.files[0];
+      if (file) {
+        try {
+          const dataUrl = await compressImageFile(file, 1600, 0.85);
+          payload.imagemBase64 = dataUrl.split(",")[1];
+          payload.mimeType = "image/jpeg";
+          payload.fileName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+        } catch (err) {
+          feedback.hidden = false;
+          feedback.textContent = "Não foi possível processar essa imagem. Tente outra foto.";
+          return;
+        }
+      } else if (!state.editingResultadoId) {
+        feedback.hidden = false;
+        feedback.textContent = "Selecione uma foto para enviar.";
+        return;
+      }
+
+      if (state.editingResultadoId) {
+        payload.action = "update_resultado";
+        payload.id = state.editingResultadoId;
+      } else {
+        payload.action = "create_resultado";
+      }
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = "Enviando...";
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        feedback.hidden = false;
+        if (json.ok) {
+          feedback.textContent = state.editingResultadoId ? "Foto atualizada!" : "Foto adicionada com sucesso!";
+          resetResultadoForm();
+          loadResultados();
+        } else {
+          feedback.textContent = "Erro ao salvar: " + (json.error || "tente novamente.");
+        }
+      } catch (err) {
+        feedback.hidden = false;
+        feedback.textContent = "Erro de conexão. Tente novamente.";
+      }
+
+      btn.disabled = false;
+      btn.textContent = state.editingResultadoId ? "Salvar alterações" : "Salvar foto";
+    });
+  }
+
+  function resetResultadoForm() {
+    document.getElementById("resForm").reset();
+    document.getElementById("resAtivo").checked = true;
+    document.getElementById("resPreviewWrap").hidden = true;
+    state.editingResultadoId = null;
+    document.getElementById("resFormTitle").textContent = "Nova foto de resultado";
+    document.getElementById("resForm").querySelector('button[type="submit"]').textContent = "Salvar foto";
+    document.getElementById("resCancelEdit").hidden = true;
+  }
+
+  function editResultado(id) {
+    const r = state.resultados.find((x) => String(x["ID"]) === String(id));
+    if (!r) return;
+    state.editingResultadoId = id;
+    document.getElementById("resTag").value = r["Tag"] || "";
+    document.getElementById("resLegenda").value = r["Legenda"] || "";
+    document.getElementById("resOrdem").value = r["Ordem"] || "";
+    document.getElementById("resAtivo").checked = r["Ativo"] === true || String(r["Ativo"]).toLowerCase() === "true";
+    document.getElementById("resArquivo").value = "";
+
+    const previewWrap = document.getElementById("resPreviewWrap");
+    const previewImg = document.getElementById("resPreview");
+    if (r["Imagem URL"]) {
+      previewImg.src = r["Imagem URL"];
+      previewWrap.hidden = false;
+    } else {
+      previewWrap.hidden = true;
+    }
+
+    document.getElementById("resFormTitle").textContent = "Editar foto de resultado";
+    document.getElementById("resForm").querySelector('button[type="submit"]').textContent = "Salvar alterações";
+    document.getElementById("resCancelEdit").hidden = false;
+
+    document.querySelectorAll(".panel-tab").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".panel-panel").forEach((p2) => p2.classList.remove("active"));
+    document.querySelector('.panel-tab[data-tab="resultados"]').classList.add("active");
+    document.getElementById("tab-resultados").classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function deleteResultado(id) {
+    if (!confirm("Excluir esta foto? Essa ação não pode ser desfeita.")) return;
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "delete_resultado", token: ADMIN_TOKEN, id }),
+      });
+      state.resultados = state.resultados.filter((x) => String(x["ID"]) !== String(id));
+      renderResultados();
+    } catch (err) {
+      alert("Não foi possível excluir agora. Tente de novo.");
+    }
+  }
+
+  function renderResultados() {
+    const tbody = document.getElementById("resTbody");
+    if (!tbody) return;
+
+    if (state.resultados.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="panel-empty">Nenhuma foto cadastrada ainda.</td></tr>`;
+      return;
+    }
+
+    const sorted = state.resultados.slice().sort((a, b) => (a["Ordem"] || 0) - (b["Ordem"] || 0));
+
+    tbody.innerHTML = sorted
+      .map((r) => {
+        const ativo = r["Ativo"] === true || String(r["Ativo"]).toLowerCase() === "true";
+        const img = r["Imagem URL"] ? `<img src="${escapeHtml(r["Imagem URL"])}" alt="" style="width:42px; height:42px; object-fit:cover; border-radius:8px;">` : "—";
+        return `
+        <tr>
+          <td>${img}</td>
+          <td>${escapeHtml(r["Tag"] || "")}</td>
+          <td>${escapeHtml(r["Legenda"] || "")}</td>
+          <td>${escapeHtml(String(r["Ordem"] != null ? r["Ordem"] : ""))}</td>
+          <td>${ativo ? "✅" : "🚫"}</td>
+          <td class="fin-actions">
+            <button type="button" class="btn btn-ghost" data-edit-resultado="${r["ID"]}" style="padding:0.4rem 0.7rem; font-size:0.78rem;">✏️ Editar</button>
+            <button type="button" class="btn btn-ghost" data-delete-resultado="${r["ID"]}" style="padding:0.4rem 0.7rem; font-size:0.78rem; color:#b3261e; border-color:#b3261e;">🗑️ Excluir</button>
+          </td>
+        </tr>`;
+      })
+      .join("");
+
+    tbody.querySelectorAll("[data-edit-resultado]").forEach((btn) => {
+      btn.addEventListener("click", () => editResultado(btn.dataset.editResultado));
+    });
+    tbody.querySelectorAll("[data-delete-resultado]").forEach((btn) => {
+      btn.addEventListener("click", () => deleteResultado(btn.dataset.deleteResultado));
     });
   }
 })();

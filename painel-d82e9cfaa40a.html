@@ -9,8 +9,8 @@
 <link rel="icon" href="/assets/images/logo-encanto-glow.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=17">
-<link rel="stylesheet" href="/assets/css/painel.css?v=17">
+<link rel="stylesheet" href="/assets/css/style.css?v=18">
+<link rel="stylesheet" href="/assets/css/painel.css?v=18">
 </head>
 <body class="panel-body">
 
@@ -38,6 +38,7 @@
       <button class="panel-tab" data-tab="todos">Todos os Agendamentos</button>
       <button class="panel-tab" data-tab="paciente">Buscar Paciente</button>
       <button class="panel-tab" data-tab="produtos">Produtos (Loja)</button>
+      <button class="panel-tab" data-tab="resultados">Resultados (Fotos)</button>
     </nav>
   </header>
 
@@ -223,10 +224,61 @@
       </div>
     </section>
 
+    <!-- ===== Resultados (Fotos) ===== -->
+    <section class="panel-panel" id="tab-resultados">
+      <div class="panel-card panel-card-narrow">
+        <h2 id="resFormTitle">Nova foto de resultado</h2>
+        <form id="resForm">
+          <div class="form-field">
+            <label for="resArquivo">Foto (do celular ou computador)</label>
+            <input type="file" id="resArquivo" accept="image/*">
+            <p style="font-size:0.8rem; color:var(--ink-soft); margin-top:0.4rem;">Ao editar uma foto já existente, deixe em branco para manter a foto atual.</p>
+          </div>
+          <div id="resPreviewWrap" hidden style="margin:0.8rem 0;">
+            <img id="resPreview" src="" alt="Pré-visualização" style="max-width:180px; border-radius:10px; display:block;">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="resTag">Tag (ex: "Antes / Depois")</label>
+              <input type="text" id="resTag" placeholder="Antes / Depois">
+            </div>
+            <div class="form-field">
+              <label for="resLegenda">Legenda</label>
+              <input type="text" id="resLegenda" placeholder="Ex: Harmonização facial">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="resOrdem">Ordem de exibição</label>
+              <input type="number" id="resOrdem" min="0" step="1" placeholder="0">
+            </div>
+            <div class="form-field">
+              <label class="form-radio" style="margin-top:1.8rem;"><input type="checkbox" id="resAtivo" checked> Visível no site</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Salvar foto</button>
+          <button type="button" class="btn btn-ghost" id="resCancelEdit" hidden style="width:100%; justify-content:center; margin-top:0.7rem;">Cancelar edição</button>
+          <p class="form-feedback" id="resFeedback" hidden></p>
+        </form>
+      </div>
+
+      <div class="panel-card">
+        <h2>Todas as fotos</h2>
+        <div class="panel-table-wrap">
+          <table class="panel-table" id="resTable">
+            <thead>
+              <tr><th>Foto</th><th>Tag</th><th>Legenda</th><th>Ordem</th><th>Visível</th><th></th></tr>
+            </thead>
+            <tbody id="resTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
-<script src="/assets/js/treatments-data.js?v=17"></script>
-<script src="/assets/js/painel.js?v=17"></script>
+<script src="/assets/js/treatments-data.js?v=18"></script>
+<script src="/assets/js/painel.js?v=18"></script>
 </body>
 </html>
