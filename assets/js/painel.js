@@ -582,6 +582,8 @@
   // ---------- Buscar Paciente ----------
   function setupPaciente() {
     document.getElementById("pacienteBusca").addEventListener("input", renderPacienteResultados);
+    setupPacienteExpandir("pacienteResultados");
+    setupPacienteExpandir("pacienteTodos");
   }
 
   function normalize(str) {
@@ -635,40 +637,63 @@
 
     return `
     <div class="panel-patient-card">
-      <div class="panel-patient-head">
-        <div>
-          <h3>${escapeHtml(paciente.nome) || "(sem nome)"}${duplicado ? ` <span class="tipo-badge tipo-Duplicidade" title="Encontramos ${paciente.cadastros.length} cadastros com esse telefone">⚠️ Cadastro duplicado (${paciente.cadastros.length}x)</span>` : ""}</h3>
+      <div class="panel-patient-summary">
+        <div class="panel-patient-summary-name">
+          <h3>${escapeHtml(paciente.nome) || "(sem nome)"}${duplicado ? ` <span class="tipo-badge tipo-Duplicidade" title="Encontramos ${paciente.cadastros.length} cadastros com esse telefone">⚠️ Duplicado</span>` : ""}</h3>
           <span>${escapeHtml(paciente.telefone || "")}${paciente.email ? " · " + escapeHtml(paciente.email) : ""}</span>
         </div>
+        <div class="panel-patient-summary-stats">
+          <div class="panel-patient-summary-stat"><strong>${concluidas.length}</strong><span>Procedimentos</span></div>
+          <div class="panel-patient-summary-stat"><strong>${formatCurrency(totalGasto)}</strong><span>Total gasto</span></div>
+          <span class="panel-patient-chevron">▾</span>
+        </div>
       </div>
-      <div class="panel-stats">
-        <div class="panel-stat"><strong>${paciente.visitas.length}</strong><span>Agendamentos</span></div>
-        <div class="panel-stat"><strong>${concluidas.length}</strong><span>Visitas concluídas</span></div>
-        <div class="panel-stat"><strong>${formatCurrency(totalGasto)}</strong><span>Total gasto</span></div>
-        <div class="panel-stat"><strong>${procedimentos.length}</strong><span>Procedimentos distintos</span></div>
+      <div class="panel-patient-detail" hidden>
+        <div class="panel-stats">
+          <div class="panel-stat"><strong>${paciente.visitas.length}</strong><span>Agendamentos</span></div>
+          <div class="panel-stat"><strong>${concluidas.length}</strong><span>Visitas concluídas</span></div>
+          <div class="panel-stat"><strong>${formatCurrency(totalGasto)}</strong><span>Total gasto</span></div>
+          <div class="panel-stat"><strong>${procedimentos.length}</strong><span>Procedimentos distintos</span></div>
+        </div>
+        ${procedimentos.length ? `<p style="margin-bottom:1rem; font-size:0.88rem; color:var(--ink-soft);"><strong>Procedimentos realizados:</strong> ${procedimentos.map(escapeHtml).join(", ")}</p>` : ""}
+        ${
+          visitasOrdenadas.length === 0
+            ? `<p class="panel-empty" style="padding:1rem;">Cadastrado, ainda sem agendamentos.</p>`
+            : `<div class="panel-list">
+          ${visitasOrdenadas
+            .map((v) => {
+              const [y, m, d] = String(v["Data da Consulta"] || "").split("-");
+              const dataFmt = y ? `${d}/${m}/${y}` : "—";
+              return `
+            <div class="panel-list-item">
+              <div>
+                <div class="name">${dataFmt} ${v["Horário"] ? "às " + v["Horário"] : ""} — ${escapeHtml(v["Procedimento"] || "")}</div>
+                <div class="meta">${formatCurrency(v["Valor"])}</div>
+              </div>
+              <span class="status-${v["Status"]}">${v["Status"] || ""}</span>
+            </div>`;
+            })
+            .join("")}
+        </div>`
+        }
       </div>
-      ${procedimentos.length ? `<p style="margin-bottom:1rem; font-size:0.88rem; color:var(--ink-soft);"><strong>Procedimentos realizados:</strong> ${procedimentos.map(escapeHtml).join(", ")}</p>` : ""}
-      ${
-        visitasOrdenadas.length === 0
-          ? `<p class="panel-empty" style="padding:1rem;">Cadastrado, ainda sem agendamentos.</p>`
-          : `<div class="panel-list">
-        ${visitasOrdenadas
-          .map((v) => {
-            const [y, m, d] = String(v["Data da Consulta"] || "").split("-");
-            const dataFmt = y ? `${d}/${m}/${y}` : "—";
-            return `
-          <div class="panel-list-item">
-            <div>
-              <div class="name">${dataFmt} ${v["Horário"] ? "às " + v["Horário"] : ""} — ${escapeHtml(v["Procedimento"] || "")}</div>
-              <div class="meta">${formatCurrency(v["Valor"])}</div>
-            </div>
-            <span class="status-${v["Status"]}">${v["Status"] || ""}</span>
-          </div>`;
-          })
-          .join("")}
-      </div>`
-      }
     </div>`;
+  }
+
+  // Expande/recolhe o card de um paciente ao clicar no resumo — delegado no
+  // container pra funcionar mesmo depois de re-renderizar a lista inteira.
+  function setupPacienteExpandir(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener("click", (e) => {
+      const summary = e.target.closest(".panel-patient-summary");
+      if (!summary) return;
+      const card = summary.closest(".panel-patient-card");
+      const detail = card.querySelector(".panel-patient-detail");
+      const expandido = !detail.hidden;
+      detail.hidden = expandido;
+      card.classList.toggle("expanded", !expandido);
+    });
   }
 
   function renderPacienteResultados() {

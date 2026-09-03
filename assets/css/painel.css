@@ -97,7 +97,18 @@
 .status-Cancelado { color: #b3261e; }
 
 /* ---- Patient search ---- */
-.panel-patient-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.8rem; margin-bottom: 1.2rem; }
+.panel-patient-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 0.8rem; overflow: hidden; }
+.panel-patient-summary { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 1.2rem 1.6rem; cursor: pointer; user-select: none; }
+.panel-patient-summary:hover { background: var(--cream); }
+.panel-patient-summary-name h3 { font-size: 1.05rem; margin-bottom: 0.15rem; }
+.panel-patient-summary-name span { color: var(--ink-soft); font-size: 0.82rem; }
+.panel-patient-summary-stats { display: flex; align-items: center; gap: 1.4rem; flex-shrink: 0; }
+.panel-patient-summary-stat { text-align: center; }
+.panel-patient-summary-stat strong { display: block; font-family: var(--ff-heading); font-size: 1.1rem; color: var(--rose-dark); }
+.panel-patient-summary-stat span { font-size: 0.68rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+.panel-patient-chevron { font-size: 1.1rem; color: var(--ink-soft); transition: transform .25s ease; }
+.panel-patient-card.expanded .panel-patient-chevron { transform: rotate(180deg); }
+.panel-patient-detail { padding: 0 1.6rem 1.6rem; border-top: 1px solid rgba(43,36,34,0.08); padding-top: 1.4rem; margin-top: 0.2rem; }
 .panel-patient-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.4rem; }
 .panel-patient-head h3 { font-size: 1.15rem; }
 .panel-patient-head span { color: var(--ink-soft); font-size: 0.85rem; }
