@@ -5,7 +5,19 @@
   const ACCESS_CODE = "EncantoGlow2026";
   const SESSION_KEY = "encantoGlowPanelUnlocked";
 
-  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null, resultados: [], editingResultadoId: null, cadastros: [], procedimentos: [], editingProcedimentoId: null };
+  const state = {
+    agendamentos: [],
+    editingId: null,
+    produtos: [],
+    editingProdutoId: null,
+    resultados: [],
+    editingResultadoId: null,
+    cadastros: [],
+    procedimentos: [],
+    editingProcedimentoId: null,
+    agendamentosCarregados: false,
+    cadastrosCarregados: false,
+  };
   let calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
   const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const DOWS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -112,6 +124,7 @@
       const json = await res.json();
       if (json.ok) {
         state.agendamentos = json.rows || [];
+        state.agendamentosCarregados = true;
         renderCalendar();
         renderTodos();
         renderPacienteResultados();
@@ -133,6 +146,7 @@
       const json = await res.json();
       if (json.ok) {
         state.cadastros = json.rows || [];
+        state.cadastrosCarregados = true;
         populateAgendaPacienteSelect();
         renderPacienteResultados();
         renderTodosPacientes();
@@ -629,7 +643,9 @@
     return Object.values(mapa);
   }
 
-  function renderPacienteCard(paciente) {
+  // Gera as duas linhas de tabela de um paciente: a linha-resumo (sempre
+  // visível) e a linha de detalhe (escondida até o clique).
+  function renderPacienteRows(paciente) {
     const concluidas = paciente.visitas.filter((v) => v["Status"] === "Concluído");
     const totalGasto = concluidas.reduce((sum, v) => sum + (parseFloat(v["Valor"]) || 0), 0);
     const procedimentos = [...new Set(concluidas.map((v) => v["Procedimento"]).filter(Boolean))];
@@ -638,20 +654,8 @@
       .sort((a, b) => String(b["Data da Consulta"]).localeCompare(String(a["Data da Consulta"])));
     const duplicado = paciente.cadastros.length > 1;
 
-    return `
-    <div class="panel-patient-card">
-      <div class="panel-patient-summary">
-        <div class="panel-patient-summary-name">
-          <h3>${escapeHtml(paciente.nome) || "(sem nome)"}${duplicado ? ` <span class="tipo-badge tipo-Duplicidade" title="Encontramos ${paciente.cadastros.length} cadastros com esse telefone">⚠️ Duplicado</span>` : ""}</h3>
-          <span>${escapeHtml(paciente.telefone || "")}${paciente.email ? " · " + escapeHtml(paciente.email) : ""}</span>
-        </div>
-        <div class="panel-patient-summary-stats">
-          <div class="panel-patient-summary-stat"><strong>${concluidas.length}</strong><span>Procedimentos</span></div>
-          <div class="panel-patient-summary-stat"><strong>${formatCurrency(totalGasto)}</strong><span>Total gasto</span></div>
-          <span class="panel-patient-chevron">▾</span>
-        </div>
-      </div>
-      <div class="panel-patient-detail" hidden>
+    const detalheConteudo = `
+      <div class="panel-patient-detail-inner">
         <div class="panel-stats">
           <div class="panel-stat"><strong>${paciente.visitas.length}</strong><span>Agendamentos</span></div>
           <div class="panel-stat"><strong>${concluidas.length}</strong><span>Visitas concluídas</span></div>
@@ -679,23 +683,50 @@
             .join("")}
         </div>`
         }
-      </div>
-    </div>`;
+      </div>`;
+
+    return `
+      <tr class="panel-patient-row">
+        <td>
+          <div class="panel-patient-nome-cell">
+            <span class="panel-patient-chevron">▾</span>
+            <span>${escapeHtml(paciente.nome) || "(sem nome)"}</span>
+            ${duplicado ? ` <span class="tipo-badge tipo-Duplicidade" title="Encontramos ${paciente.cadastros.length} cadastros com esse telefone">⚠️ Duplicado</span>` : ""}
+          </div>
+        </td>
+        <td>${escapeHtml(paciente.telefone || "")}</td>
+        <td>${concluidas.length}</td>
+        <td>${formatCurrency(totalGasto)}</td>
+      </tr>
+      <tr class="panel-patient-detail-row" hidden>
+        <td colspan="4">${detalheConteudo}</td>
+      </tr>`;
   }
 
-  // Expande/recolhe o card de um paciente ao clicar no resumo — delegado no
-  // container pra funcionar mesmo depois de re-renderizar a lista inteira.
+  function tabelaPacientesHtml(lista) {
+    return `
+    <table class="panel-table">
+      <thead>
+        <tr><th>Nome</th><th>Telefone</th><th>Procedimentos</th><th>Total gasto</th></tr>
+      </thead>
+      <tbody>${lista.map(renderPacienteRows).join("")}</tbody>
+    </table>`;
+  }
+
+  // Expande/recolhe a linha de detalhe de um paciente ao clicar na
+  // linha-resumo — delegado no container pra funcionar mesmo depois de
+  // re-renderizar a tabela inteira.
   function setupPacienteExpandir(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.addEventListener("click", (e) => {
-      const summary = e.target.closest(".panel-patient-summary");
-      if (!summary) return;
-      const card = summary.closest(".panel-patient-card");
-      const detail = card.querySelector(".panel-patient-detail");
-      const expandido = !detail.hidden;
-      detail.hidden = expandido;
-      card.classList.toggle("expanded", !expandido);
+      const row = e.target.closest(".panel-patient-row");
+      if (!row) return;
+      const detailRow = row.nextElementSibling;
+      if (!detailRow || !detailRow.classList.contains("panel-patient-detail-row")) return;
+      const expandido = !detailRow.hidden;
+      detailRow.hidden = expandido;
+      row.classList.toggle("expanded", !expandido);
     });
   }
 
@@ -709,28 +740,41 @@
       return;
     }
 
+    if (!state.agendamentosCarregados || !state.cadastrosCarregados) {
+      container.innerHTML = `<p class="panel-empty">Carregando pacientes...</p>`;
+      return;
+    }
+
     const lista = buildPacientesUnificados().filter((p) => normalize(p.nome).includes(termo));
     if (lista.length === 0) {
       container.innerHTML = `<p class="panel-empty">Nenhum paciente encontrado com esse nome.</p>`;
       return;
     }
 
-    container.innerHTML = lista.map(renderPacienteCard).join("");
+    container.innerHTML = tabelaPacientesHtml(lista);
   }
 
   // Lista completa de pacientes (cadastrados e/ou com agendamentos), sempre
   // visível abaixo da busca, com aviso de cadastros duplicados (mesmo
-  // telefone aparecendo mais de uma vez em Cadastros).
+  // telefone aparecendo mais de uma vez em Cadastros). Só renderiza a
+  // versão final depois que agendamentos E cadastros terminaram de
+  // carregar — antes disso mostra "Carregando...", pra não parecer que
+  // faltam pacientes enquanto a segunda busca ainda está em andamento.
   function renderTodosPacientes() {
     const container = document.getElementById("pacienteTodos");
     if (!container) return;
+
+    if (!state.agendamentosCarregados || !state.cadastrosCarregados) {
+      container.innerHTML = `<p class="panel-empty">Carregando pacientes...</p>`;
+      return;
+    }
 
     const todos = buildPacientesUnificados().sort((a, b) => normalize(a.nome).localeCompare(normalize(b.nome)));
 
     if (todos.length === 0) {
       container.innerHTML = `<p class="panel-empty">Nenhum paciente cadastrado ainda.</p>`;
     } else {
-      container.innerHTML = todos.map(renderPacienteCard).join("");
+      container.innerHTML = tabelaPacientesHtml(todos);
     }
 
     const duplicados = todos.filter((p) => p.cadastros.length > 1);
@@ -738,7 +782,7 @@
     if (aviso) {
       if (duplicados.length > 0) {
         aviso.hidden = false;
-        aviso.textContent = `⚠️ ${duplicados.length} paciente(s) com cadastro duplicado (mesmo telefone em mais de um cadastro) — veja o aviso no card de cada um.`;
+        aviso.textContent = `⚠️ ${duplicados.length} paciente(s) com cadastro duplicado (mesmo telefone em mais de um cadastro) — veja o aviso na linha de cada um.`;
       } else {
         aviso.hidden = true;
       }
