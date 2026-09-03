@@ -9,8 +9,8 @@
 <link rel="icon" href="/assets/images/logo-encanto-glow.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=19">
-<link rel="stylesheet" href="/assets/css/painel.css?v=19">
+<link rel="stylesheet" href="/assets/css/style.css?v=20">
+<link rel="stylesheet" href="/assets/css/painel.css?v=20">
 </head>
 <body class="panel-body">
 
@@ -34,6 +34,7 @@
     </div>
     <nav class="panel-tabs" id="panelTabs">
       <button class="panel-tab active" data-tab="novo">Novo Agendamento</button>
+      <button class="panel-tab" data-tab="cadastro">Novo Cadastro</button>
       <button class="panel-tab" data-tab="calendario">Calendário</button>
       <button class="panel-tab" data-tab="todos">Todos os Agendamentos</button>
       <button class="panel-tab" data-tab="paciente">Buscar Paciente</button>
@@ -106,6 +107,73 @@
           <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Salvar agendamento</button>
           <button type="button" class="btn btn-ghost" id="agCancelEdit" hidden style="width:100%; justify-content:center; margin-top:0.7rem;">Cancelar edição</button>
           <p class="form-feedback" id="agendaFeedback" hidden></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== Novo Cadastro ===== -->
+    <section class="panel-panel" id="tab-cadastro">
+      <div class="panel-card panel-card-narrow">
+        <h2>Cadastrar novo paciente</h2>
+        <p style="font-size:0.85rem; color:var(--ink-soft); margin-top:-0.8rem; margin-bottom:1.2rem;">Mesmo formulário que o cliente preenche no site — use pra cadastrar quem ligou ou veio direto na clínica.</p>
+        <form id="cadForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="cadNome">Nome completo</label>
+              <input type="text" id="cadNome" required>
+            </div>
+            <div class="form-field">
+              <label for="cadTelefone">Telefone / WhatsApp</label>
+              <input type="tel" id="cadTelefone" required placeholder="(15) 99999-9999">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="cadEmail">E-mail</label>
+              <input type="email" id="cadEmail" required>
+            </div>
+            <div class="form-field">
+              <label for="cadCidade">Cidade</label>
+              <input type="text" id="cadCidade" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="cadNascimento">Data de nascimento</label>
+              <input type="date" id="cadNascimento" required>
+            </div>
+            <div class="form-field">
+              <label for="cadCpf">CPF</label>
+              <input type="text" id="cadCpf" required inputmode="numeric" placeholder="000.000.000-00" maxlength="14">
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="cadEndereco">Endereço completo</label>
+            <input type="text" id="cadEndereco" required placeholder="Rua, número, bairro, cidade - UF">
+          </div>
+          <div class="form-field">
+            <label>Houve indicação de alguém?</label>
+            <div class="form-radio-group">
+              <label class="form-radio"><input type="radio" name="cadIndicacao" value="sim" id="cadIndicacaoSim"> Sim</label>
+              <label class="form-radio"><input type="radio" name="cadIndicacao" value="nao" id="cadIndicacaoNao" checked> Não</label>
+            </div>
+          </div>
+          <div class="form-field" id="cadReferrerField" hidden>
+            <label for="cadReferrer">Quem indicou?</label>
+            <input type="text" id="cadReferrer" placeholder="Nome de quem indicou">
+          </div>
+          <div class="form-field">
+            <label for="cadProcedimento">Procedimento de interesse</label>
+            <select id="cadProcedimento" required>
+              <option value="" disabled selected>Selecione um procedimento</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="cadObs">Observação</label>
+            <textarea id="cadObs" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Salvar cadastro</button>
+          <p class="form-feedback" id="cadFeedback" hidden></p>
         </form>
       </div>
     </section>
@@ -288,7 +356,7 @@
   </main>
 </div>
 
-<script src="/assets/js/treatments-data.js?v=19"></script>
-<script src="/assets/js/painel.js?v=19"></script>
+<script src="/assets/js/treatments-data.js?v=20"></script>
+<script src="/assets/js/painel.js?v=20"></script>
 </body>
 </html>

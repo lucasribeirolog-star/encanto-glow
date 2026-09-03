@@ -48,6 +48,7 @@
     populateProcedimentos();
     setupTabs();
     setupAgendaForm();
+    setupCadastroForm();
     setupCalendar();
     setupTodos();
     setupPaciente();
@@ -68,18 +69,24 @@
   }
 
   function populateProcedimentos() {
-    const select = document.getElementById("agProcedimento");
-    if (!select || typeof TREATMENTS === "undefined") return;
-    TREATMENTS.forEach((t) => {
-      const opt = document.createElement("option");
-      opt.value = t.name;
-      opt.textContent = t.name;
-      select.appendChild(opt);
+    if (typeof TREATMENTS === "undefined") return;
+    [
+      { id: "agProcedimento", outroLabel: "Outro" },
+      { id: "cadProcedimento", outroLabel: "Outro / ainda não sei" },
+    ].forEach(({ id, outroLabel }) => {
+      const select = document.getElementById(id);
+      if (!select) return;
+      TREATMENTS.forEach((t) => {
+        const opt = document.createElement("option");
+        opt.value = t.name;
+        opt.textContent = t.name;
+        select.appendChild(opt);
+      });
+      const outro = document.createElement("option");
+      outro.value = outroLabel;
+      outro.textContent = outroLabel;
+      select.appendChild(outro);
     });
-    const outro = document.createElement("option");
-    outro.value = "Outro";
-    outro.textContent = "Outro";
-    select.appendChild(outro);
   }
 
   // ---------- Tabs ----------
@@ -179,6 +186,83 @@
     if (valorAtual && select.querySelector(`option[value="${CSS.escape(valorAtual)}"]`)) {
       select.value = valorAtual;
     }
+  }
+
+  // ---------- Novo Cadastro (mesmo formulário público, preenchido pela equipe) ----------
+  function setupCadastroForm() {
+    const form = document.getElementById("cadForm");
+    if (!form) return;
+    const feedback = document.getElementById("cadFeedback");
+    const referrerField = document.getElementById("cadReferrerField");
+    const referrerInput = document.getElementById("cadReferrer");
+    const cpfInput = document.getElementById("cadCpf");
+
+    cpfInput.addEventListener("input", () => {
+      let digits = cpfInput.value.replace(/\D/g, "").slice(0, 11);
+      let formatted = digits;
+      if (digits.length > 9) formatted = digits.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+      else if (digits.length > 6) formatted = digits.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+      else if (digits.length > 3) formatted = digits.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+      cpfInput.value = formatted;
+    });
+
+    form.querySelectorAll('input[name="cadIndicacao"]').forEach((radio) => {
+      radio.addEventListener("change", () => {
+        const isSim = form.querySelector('input[name="cadIndicacao"]:checked').value === "sim";
+        referrerField.hidden = !isSim;
+        referrerInput.required = isSim;
+        if (!isSim) referrerInput.value = "";
+      });
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      feedback.hidden = true;
+
+      const indicacaoChecked = form.querySelector('input[name="cadIndicacao"]:checked').value;
+      const payload = {
+        nome: document.getElementById("cadNome").value.trim(),
+        telefone: document.getElementById("cadTelefone").value.trim(),
+        email: document.getElementById("cadEmail").value.trim(),
+        cidade: document.getElementById("cadCidade").value.trim(),
+        dataNascimento: document.getElementById("cadNascimento").value,
+        cpf: cpfInput.value.trim(),
+        endereco: document.getElementById("cadEndereco").value.trim(),
+        indicacao: indicacaoChecked === "sim" ? "Sim" : "Não",
+        quemIndicou: indicacaoChecked === "sim" ? referrerInput.value.trim() : "",
+        procedimento: document.getElementById("cadProcedimento").value,
+        observacao: document.getElementById("cadObs").value.trim(),
+        dataEnvio: new Date().toISOString(),
+      };
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = "Salvando...";
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        feedback.hidden = false;
+        if (json.ok) {
+          feedback.textContent = "Cadastro salvo com sucesso!";
+          form.reset();
+          referrerField.hidden = true;
+          loadCadastros();
+        } else {
+          feedback.textContent = "Erro ao salvar: " + (json.error || "tente novamente.");
+        }
+      } catch (err) {
+        feedback.hidden = false;
+        feedback.textContent = "Erro de conexão. Tente novamente.";
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Salvar cadastro";
+    });
   }
 
   // ---------- Novo / Editar Agendamento ----------
