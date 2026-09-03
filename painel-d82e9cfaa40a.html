@@ -9,8 +9,8 @@
 <link rel="icon" href="/assets/images/logo-encanto-glow.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=21">
-<link rel="stylesheet" href="/assets/css/painel.css?v=21">
+<link rel="stylesheet" href="/assets/css/style.css?v=22">
+<link rel="stylesheet" href="/assets/css/painel.css?v=22">
 </head>
 <body class="panel-body">
 
@@ -40,6 +40,7 @@
       <button class="panel-tab" data-tab="paciente">Buscar Paciente</button>
       <button class="panel-tab" data-tab="produtos">Produtos (Loja)</button>
       <button class="panel-tab" data-tab="resultados">Resultados (Fotos)</button>
+      <button class="panel-tab" data-tab="procedimentos">Procedimentos</button>
     </nav>
   </header>
 
@@ -353,10 +354,58 @@
       </div>
     </section>
 
+    <!-- ===== Procedimentos ===== -->
+    <section class="panel-panel" id="tab-procedimentos">
+      <div class="panel-card panel-card-narrow">
+        <h2 id="procFormTitle">Novo procedimento</h2>
+        <p style="font-size:0.85rem; color:var(--ink-soft); margin-top:-0.8rem; margin-bottom:1.2rem;">Nome, resumo e ícone aparecem na página inicial e no topo da página do procedimento. O conteúdo completo (benefícios, etapas, cuidados, perguntas frequentes) é adicionado à parte.</p>
+        <form id="procForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="procNome">Nome do procedimento</label>
+              <input type="text" id="procNome" required>
+            </div>
+            <div class="form-field">
+              <label for="procIcone">Ícone (um emoji)</label>
+              <input type="text" id="procIcone" placeholder="✨" maxlength="4">
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="procResumo">Resumo curto</label>
+            <textarea id="procResumo" rows="2" placeholder="Uma frase explicando o procedimento, mostrada no card da página inicial"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="procOrdem">Ordem de exibição</label>
+              <input type="number" id="procOrdem" min="0" step="1" placeholder="0">
+            </div>
+            <div class="form-field">
+              <label class="form-radio" style="margin-top:1.8rem;"><input type="checkbox" id="procAtivo" checked> Visível no site</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Salvar procedimento</button>
+          <button type="button" class="btn btn-ghost" id="procCancelEdit" hidden style="width:100%; justify-content:center; margin-top:0.7rem;">Cancelar edição</button>
+          <p class="form-feedback" id="procFeedback" hidden></p>
+        </form>
+      </div>
+
+      <div class="panel-card">
+        <h2>Todos os procedimentos</h2>
+        <div class="panel-table-wrap">
+          <table class="panel-table" id="procTable">
+            <thead>
+              <tr><th>Ícone</th><th>Nome</th><th>Resumo</th><th>Ordem</th><th>Visível</th><th></th></tr>
+            </thead>
+            <tbody id="procTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
-<script src="/assets/js/treatments-data.js?v=21"></script>
-<script src="/assets/js/painel.js?v=21"></script>
+<script src="/assets/js/treatments-data.js?v=22"></script>
+<script src="/assets/js/painel.js?v=22"></script>
 </body>
 </html>

@@ -115,6 +115,55 @@ if (resultsTrack) {
     .catch(() => renderResults(FALLBACK_RESULTS));
 }
 
+// Sincroniza a grade de tratamentos com o básico (nome/ícone/resumo/ativo)
+// cadastrado na aba "Procedimentos" do painel interno. Atualiza os cards já
+// existentes no lugar (sem refazer o HTML, pra não atrapalhar a animação de
+// entrada), oculta os que foram marcados como inativos, e adiciona no fim
+// os procedimentos novos que só existem no painel ainda. Se a aba não
+// existir no backend (nenhuma linha retornada), não mexe em nada.
+if (servicesGrid && typeof TREATMENTS !== 'undefined') {
+  fetch(`${WEBHOOK_URL}?action=list_procedimentos`)
+    .then(res => res.json())
+    .then(json => {
+      const rows = json.rows || [];
+      if (!rows.length) return;
+      const bySlug = {};
+      rows.forEach(r => { if (r['ID']) bySlug[r['ID']] = r; });
+
+      Array.from(servicesGrid.children).forEach(card => {
+        const slug = (card.getAttribute('href') || '').split('t=')[1];
+        const row = bySlug[slug];
+        if (!row) {
+          card.remove();
+          return;
+        }
+        if (row['Nome']) card.querySelector('h3').textContent = row['Nome'];
+        if (row['Ícone']) card.querySelector('.service-icon').textContent = row['Ícone'];
+        if (row['Resumo']) card.querySelector('p').textContent = row['Resumo'];
+        delete bySlug[slug];
+      });
+
+      const novosSlugs = Object.keys(bySlug);
+      if (novosSlugs.length) {
+        const novosHtml = novosSlugs
+          .map((slug, i) => {
+            const r = bySlug[slug];
+            return `
+            <a href="tratamento.html?t=${slug}" class="service-card reveal-left" style="transition-delay:${(i % 3) * 0.12}s">
+              <div class="service-icon">${r['Ícone'] || '✨'}</div>
+              <h3>${r['Nome'] || ''}</h3>
+              <p>${r['Resumo'] || ''}</p>
+              <span class="service-more">Saiba mais &rarr;</span>
+            </a>`;
+          })
+          .join('');
+        servicesGrid.insertAdjacentHTML('beforeend', novosHtml);
+        servicesGrid.querySelectorAll('.reveal-left:not(.in)').forEach(el => revealObserver.observe(el));
+      }
+    })
+    .catch(() => {});
+}
+
 // Carrossel contínuo do feed do Instagram
 const feedTrack = document.getElementById('feedTrack');
 if (feedTrack && typeof INSTAGRAM_FEED !== 'undefined') {

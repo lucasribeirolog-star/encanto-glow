@@ -5,7 +5,7 @@
   const ACCESS_CODE = "EncantoGlow2026";
   const SESSION_KEY = "encantoGlowPanelUnlocked";
 
-  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null, resultados: [], editingResultadoId: null, cadastros: [] };
+  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null, resultados: [], editingResultadoId: null, cadastros: [], procedimentos: [], editingProcedimentoId: null };
   let calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
   const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const DOWS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -54,11 +54,13 @@
     setupPaciente();
     setupProdutoForm();
     setupResultadoForm();
+    setupProcedimentoForm();
     document.getElementById("refreshBtn").addEventListener("click", () => {
       loadAgendamentos();
       loadProdutos();
       loadResultados();
       loadCadastros();
+      loadProcedimentos();
     });
     renderCalendar();
     renderTodos();
@@ -66,6 +68,7 @@
     loadProdutos();
     loadResultados();
     loadCadastros();
+    loadProcedimentos();
   }
 
   function populateProcedimentos() {
@@ -1141,6 +1144,162 @@
     });
     tbody.querySelectorAll("[data-delete-resultado]").forEach((btn) => {
       btn.addEventListener("click", () => deleteResultado(btn.dataset.deleteResultado));
+    });
+  }
+
+  // ---------- Procedimentos ----------
+  // Só o básico (nome, ícone, resumo, ativo, ordem) — o conteúdo completo de
+  // cada procedimento (benefícios, etapas, cuidados, FAQ) continua em
+  // assets/js/treatments-data.js e é mesclado no site com o que está aqui.
+  async function loadProcedimentos() {
+    try {
+      const url = `${WEBHOOK_URL}?action=list_procedimentos&token=${encodeURIComponent(ADMIN_TOKEN)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.ok) {
+        state.procedimentos = json.rows || [];
+        renderProcedimentos();
+      }
+    } catch (err) {
+      // silencioso — mantém os dados já carregados em memória
+    }
+  }
+
+  function setupProcedimentoForm() {
+    const form = document.getElementById("procForm");
+    if (!form) return;
+    const feedback = document.getElementById("procFeedback");
+    const cancelBtn = document.getElementById("procCancelEdit");
+
+    cancelBtn.addEventListener("click", resetProcedimentoForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      feedback.hidden = true;
+
+      const payload = {
+        token: ADMIN_TOKEN,
+        nome: document.getElementById("procNome").value.trim(),
+        icone: document.getElementById("procIcone").value.trim() || "✨",
+        resumo: document.getElementById("procResumo").value.trim(),
+        ordem: parseInt(document.getElementById("procOrdem").value, 10) || 0,
+        ativo: document.getElementById("procAtivo").checked,
+      };
+      if (state.editingProcedimentoId) {
+        payload.action = "update_procedimento";
+        payload.id = state.editingProcedimentoId;
+      } else {
+        payload.action = "create_procedimento";
+      }
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = "Salvando...";
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        feedback.hidden = false;
+        if (json.ok) {
+          feedback.textContent = state.editingProcedimentoId ? "Procedimento atualizado!" : "Procedimento salvo com sucesso!";
+          resetProcedimentoForm();
+          loadProcedimentos();
+        } else {
+          feedback.textContent = "Erro ao salvar: " + (json.error || "tente novamente.");
+        }
+      } catch (err) {
+        feedback.hidden = false;
+        feedback.textContent = "Erro de conexão. Tente novamente.";
+      }
+
+      btn.disabled = false;
+      btn.textContent = state.editingProcedimentoId ? "Salvar alterações" : "Salvar procedimento";
+    });
+  }
+
+  function resetProcedimentoForm() {
+    document.getElementById("procForm").reset();
+    document.getElementById("procAtivo").checked = true;
+    state.editingProcedimentoId = null;
+    document.getElementById("procFormTitle").textContent = "Novo procedimento";
+    document.getElementById("procForm").querySelector('button[type="submit"]').textContent = "Salvar procedimento";
+    document.getElementById("procCancelEdit").hidden = true;
+  }
+
+  function editProcedimento(id) {
+    const p = state.procedimentos.find((x) => String(x["ID"]) === String(id));
+    if (!p) return;
+    state.editingProcedimentoId = id;
+    document.getElementById("procNome").value = p["Nome"] || "";
+    document.getElementById("procIcone").value = p["Ícone"] || "";
+    document.getElementById("procResumo").value = p["Resumo"] || "";
+    document.getElementById("procOrdem").value = p["Ordem"] || "";
+    document.getElementById("procAtivo").checked = p["Ativo"] === true || String(p["Ativo"]).toLowerCase() === "true";
+
+    document.getElementById("procFormTitle").textContent = "Editar procedimento";
+    document.getElementById("procForm").querySelector('button[type="submit"]').textContent = "Salvar alterações";
+    document.getElementById("procCancelEdit").hidden = false;
+
+    document.querySelectorAll(".panel-tab").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".panel-panel").forEach((p2) => p2.classList.remove("active"));
+    document.querySelector('.panel-tab[data-tab="procedimentos"]').classList.add("active");
+    document.getElementById("tab-procedimentos").classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function deleteProcedimento(id) {
+    if (!confirm("Excluir este procedimento? Ele deixa de aparecer no site. Essa ação não pode ser desfeita.")) return;
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "delete_procedimento", token: ADMIN_TOKEN, id }),
+      });
+      state.procedimentos = state.procedimentos.filter((x) => String(x["ID"]) !== String(id));
+      renderProcedimentos();
+    } catch (err) {
+      alert("Não foi possível excluir agora. Tente de novo.");
+    }
+  }
+
+  function renderProcedimentos() {
+    const tbody = document.getElementById("procTbody");
+    if (!tbody) return;
+
+    if (state.procedimentos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="panel-empty">Nenhum procedimento cadastrado ainda.</td></tr>`;
+      return;
+    }
+
+    const sorted = state.procedimentos.slice().sort((a, b) => (a["Ordem"] || 0) - (b["Ordem"] || 0));
+
+    tbody.innerHTML = sorted
+      .map((p) => {
+        const ativo = p["Ativo"] === true || String(p["Ativo"]).toLowerCase() === "true";
+        return `
+        <tr>
+          <td style="font-size:1.3rem;">${escapeHtml(p["Ícone"] || "")}</td>
+          <td>${escapeHtml(p["Nome"] || "")}</td>
+          <td style="max-width:280px; white-space:normal;">${escapeHtml(p["Resumo"] || "")}</td>
+          <td>${escapeHtml(String(p["Ordem"] != null ? p["Ordem"] : ""))}</td>
+          <td>${ativo ? "✅" : "🚫"}</td>
+          <td class="fin-actions">
+            <button type="button" class="btn btn-ghost" data-edit-procedimento="${p["ID"]}" style="padding:0.4rem 0.7rem; font-size:0.78rem;">✏️ Editar</button>
+            <button type="button" class="btn btn-ghost" data-delete-procedimento="${p["ID"]}" style="padding:0.4rem 0.7rem; font-size:0.78rem; color:#b3261e; border-color:#b3261e;">🗑️ Excluir</button>
+          </td>
+        </tr>`;
+      })
+      .join("");
+
+    tbody.querySelectorAll("[data-edit-procedimento]").forEach((btn) => {
+      btn.addEventListener("click", () => editProcedimento(btn.dataset.editProcedimento));
+    });
+    tbody.querySelectorAll("[data-delete-procedimento]").forEach((btn) => {
+      btn.addEventListener("click", () => deleteProcedimento(btn.dataset.deleteProcedimento));
     });
   }
 })();
