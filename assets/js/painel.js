@@ -5,7 +5,7 @@
   const ACCESS_CODE = "EncantoGlow2026";
   const SESSION_KEY = "encantoGlowPanelUnlocked";
 
-  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null, resultados: [], editingResultadoId: null };
+  const state = { agendamentos: [], editingId: null, produtos: [], editingProdutoId: null, resultados: [], editingResultadoId: null, cadastros: [] };
   let calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
   const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const DOWS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -57,12 +57,14 @@
       loadAgendamentos();
       loadProdutos();
       loadResultados();
+      loadCadastros();
     });
     renderCalendar();
     renderTodos();
     loadAgendamentos();
     loadProdutos();
     loadResultados();
+    loadCadastros();
   }
 
   function populateProcedimentos() {
@@ -103,9 +105,79 @@
         renderCalendar();
         renderTodos();
         renderPacienteResultados();
+        renderTodosPacientes();
       }
     } catch (err) {
       // silencioso — mantém os dados já carregados em memória
+    }
+  }
+
+  // Cadastros vem do formulário público (cadastro.html) — é a lista de
+  // pacientes que já preencheram o cadastro. Usado tanto pra restringir o
+  // agendamento a pacientes cadastrados quanto pra montar a lista completa
+  // de pacientes na aba "Buscar Paciente".
+  async function loadCadastros() {
+    try {
+      const url = `${WEBHOOK_URL}?action=list_cadastros&token=${encodeURIComponent(ADMIN_TOKEN)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.ok) {
+        state.cadastros = json.rows || [];
+        populateAgendaPacienteSelect();
+        renderPacienteResultados();
+        renderTodosPacientes();
+      }
+    } catch (err) {
+      // silencioso — mantém os dados já carregados em memória
+    }
+  }
+
+  // Alguns cadastros salvam o telefone com o "55" (código do Brasil) na
+  // frente e outros não — sem normalizar isso, o mesmo paciente cadastrado
+  // duas vezes de formas diferentes pareceria duas pessoas distintas.
+  function normalizePhone(str) {
+    let digits = (str || "").toString().replace(/\D/g, "");
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) {
+      digits = digits.slice(2);
+    }
+    return digits;
+  }
+
+  // Monta as opções do seletor "Paciente cadastrado" no Novo Agendamento,
+  // uma por telefone único (se o mesmo telefone tiver mais de um cadastro,
+  // usa o mais recente) — assim o agendamento só pode ser feito pra quem já
+  // preencheu o formulário.
+  function populateAgendaPacienteSelect() {
+    const select = document.getElementById("agNome");
+    if (!select) return;
+    const valorAtual = select.value;
+
+    const porChave = {};
+    state.cadastros.forEach((c) => {
+      if (!c["Nome"]) return; // cadastro incompleto, sem nome — não dá pra agendar assim
+      const tel = normalizePhone(c["Telefone"]);
+      const chave = tel || "nome:" + normalize(c["Nome"]);
+      const atual = porChave[chave];
+      if (!atual || String(c["Data/Hora"]) > String(atual["Data/Hora"])) {
+        porChave[chave] = c;
+      }
+    });
+    const unicos = Object.keys(porChave)
+      .map((chave) => ({ chave, cadastro: porChave[chave] }))
+      .sort((a, b) => normalize(a.cadastro["Nome"]).localeCompare(normalize(b.cadastro["Nome"])));
+
+    select.innerHTML =
+      `<option value="" disabled${valorAtual ? "" : " selected"}>Selecione um paciente</option>` +
+      unicos
+        .map(({ chave, cadastro: c }) => {
+          const nome = c["Nome"] || "";
+          const tel = c["Telefone"] || "";
+          return `<option value="${escapeHtml(chave)}" data-nome="${escapeHtml(nome)}" data-telefone="${escapeHtml(tel)}" data-email="${escapeHtml(c["Email"] || "")}">${escapeHtml(nome)}${tel ? " — " + escapeHtml(tel) : ""}</option>`;
+        })
+        .join("");
+
+    if (valorAtual && select.querySelector(`option[value="${CSS.escape(valorAtual)}"]`)) {
+      select.value = valorAtual;
     }
   }
 
@@ -114,14 +186,31 @@
     const form = document.getElementById("agendaForm");
     const feedback = document.getElementById("agendaFeedback");
     const cancelBtn = document.getElementById("agCancelEdit");
+    const nomeSelect = document.getElementById("agNome");
 
     if (cancelBtn) cancelBtn.addEventListener("click", resetAgendaForm);
 
+    nomeSelect.addEventListener("change", () => {
+      const opt = nomeSelect.selectedOptions[0];
+      document.getElementById("agTelefone").value = (opt && opt.dataset.telefone) || "";
+      document.getElementById("agEmail").value = (opt && opt.dataset.email) || "";
+    });
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      feedback.hidden = true;
+
+      const opt = nomeSelect.selectedOptions[0];
+      const nomePaciente = (opt && opt.dataset.nome) || "";
+      if (!nomePaciente) {
+        feedback.hidden = false;
+        feedback.textContent = "Selecione um paciente cadastrado.";
+        return;
+      }
+
       const payload = {
         token: ADMIN_TOKEN,
-        nome: document.getElementById("agNome").value.trim(),
+        nome: nomePaciente,
         telefone: document.getElementById("agTelefone").value.trim(),
         email: document.getElementById("agEmail").value.trim(),
         procedimento: document.getElementById("agProcedimento").value,
@@ -170,6 +259,9 @@
   function resetAgendaForm() {
     document.getElementById("agendaForm").reset();
     state.editingId = null;
+    populateAgendaPacienteSelect(); // remove qualquer opção temporária injetada por uma edição anterior
+    document.getElementById("agTelefone").value = "";
+    document.getElementById("agEmail").value = "";
     const title = document.getElementById("agFormTitle");
     if (title) title.textContent = "Novo agendamento";
     document.getElementById("agendaForm").querySelector('button[type="submit"]').textContent = "Salvar agendamento";
@@ -181,7 +273,24 @@
     const ag = state.agendamentos.find((a) => String(a["ID"]) === String(id));
     if (!ag) return;
     state.editingId = id;
-    document.getElementById("agNome").value = ag["Nome"] || "";
+
+    const select = document.getElementById("agNome");
+    const tel = normalizePhone(ag["Telefone"]);
+    const chave = tel || "nome:" + normalize(ag["Nome"]);
+    let opt = select.querySelector(`option[value="${CSS.escape(chave)}"]`);
+    if (!opt) {
+      // agendamento antigo (ou paciente sem cadastro correspondente) — mantém
+      // o nome visível mesmo assim, numa opção temporária só pra essa edição
+      opt = document.createElement("option");
+      opt.value = chave;
+      opt.dataset.nome = ag["Nome"] || "";
+      opt.dataset.telefone = ag["Telefone"] || "";
+      opt.dataset.email = ag["Email"] || "";
+      opt.textContent = (ag["Nome"] || "Paciente sem cadastro") + " (sem cadastro)";
+      select.insertBefore(opt, select.options[1] || null);
+    }
+    select.value = chave;
+
     document.getElementById("agTelefone").value = ag["Telefone"] || "";
     document.getElementById("agEmail").value = ag["Email"] || "";
     document.getElementById("agProcedimento").value = ag["Procedimento"] || "";
@@ -216,6 +325,7 @@
       renderCalendar();
       renderTodos();
       renderPacienteResultados();
+      renderTodosPacientes();
     } catch (err) {
       alert("Não foi possível excluir agora. Tente de novo.");
     }
@@ -379,6 +489,7 @@
       const ag = state.agendamentos.find((a) => String(a["ID"]) === String(id));
       if (ag) ag["Status"] = status;
       renderPacienteResultados();
+      renderTodosPacientes();
     } catch (err) {
       alert("Não foi possível atualizar o status agora. Tente de novo.");
     }
@@ -397,6 +508,85 @@
       .replace(/[̀-ͯ]/g, "");
   }
 
+  // Unifica Cadastros (formulário público) + Agendamentos num único registro
+  // por paciente, agrupando pelo telefone (normalizado, só dígitos) — assim
+  // um mesmo paciente com o nome digitado de formas diferentes em cada
+  // visita ainda aparece como uma pessoa só. Quando falta telefone, agrupa
+  // pelo nome normalizado como retaguarda.
+  function buildPacientesUnificados() {
+    const mapa = {};
+    function chaveFor(nome, telefone) {
+      const tel = normalizePhone(telefone);
+      return tel ? "tel:" + tel : "nome:" + normalize(nome);
+    }
+    function garantir(nome, telefone, email) {
+      const chave = chaveFor(nome, telefone);
+      if (!mapa[chave]) {
+        mapa[chave] = { chave, nome: nome || "", telefone: telefone || "", email: email || "", cadastros: [], visitas: [] };
+      }
+      if (nome) mapa[chave].nome = nome;
+      if (telefone) mapa[chave].telefone = telefone;
+      if (email) mapa[chave].email = email;
+      return mapa[chave];
+    }
+
+    state.cadastros.forEach((c) => {
+      garantir(c["Nome"], c["Telefone"], c["Email"]).cadastros.push(c);
+    });
+    state.agendamentos.forEach((ag) => {
+      garantir(ag["Nome"], ag["Telefone"], ag["Email"]).visitas.push(ag);
+    });
+
+    return Object.values(mapa);
+  }
+
+  function renderPacienteCard(paciente) {
+    const concluidas = paciente.visitas.filter((v) => v["Status"] === "Concluído");
+    const totalGasto = concluidas.reduce((sum, v) => sum + (parseFloat(v["Valor"]) || 0), 0);
+    const procedimentos = [...new Set(concluidas.map((v) => v["Procedimento"]).filter(Boolean))];
+    const visitasOrdenadas = paciente.visitas
+      .slice()
+      .sort((a, b) => String(b["Data da Consulta"]).localeCompare(String(a["Data da Consulta"])));
+    const duplicado = paciente.cadastros.length > 1;
+
+    return `
+    <div class="panel-patient-card">
+      <div class="panel-patient-head">
+        <div>
+          <h3>${escapeHtml(paciente.nome) || "(sem nome)"}${duplicado ? ` <span class="tipo-badge tipo-Duplicidade" title="Encontramos ${paciente.cadastros.length} cadastros com esse telefone">⚠️ Cadastro duplicado (${paciente.cadastros.length}x)</span>` : ""}</h3>
+          <span>${escapeHtml(paciente.telefone || "")}${paciente.email ? " · " + escapeHtml(paciente.email) : ""}</span>
+        </div>
+      </div>
+      <div class="panel-stats">
+        <div class="panel-stat"><strong>${paciente.visitas.length}</strong><span>Agendamentos</span></div>
+        <div class="panel-stat"><strong>${concluidas.length}</strong><span>Visitas concluídas</span></div>
+        <div class="panel-stat"><strong>${formatCurrency(totalGasto)}</strong><span>Total gasto</span></div>
+        <div class="panel-stat"><strong>${procedimentos.length}</strong><span>Procedimentos distintos</span></div>
+      </div>
+      ${procedimentos.length ? `<p style="margin-bottom:1rem; font-size:0.88rem; color:var(--ink-soft);"><strong>Procedimentos realizados:</strong> ${procedimentos.map(escapeHtml).join(", ")}</p>` : ""}
+      ${
+        visitasOrdenadas.length === 0
+          ? `<p class="panel-empty" style="padding:1rem;">Cadastrado, ainda sem agendamentos.</p>`
+          : `<div class="panel-list">
+        ${visitasOrdenadas
+          .map((v) => {
+            const [y, m, d] = String(v["Data da Consulta"] || "").split("-");
+            const dataFmt = y ? `${d}/${m}/${y}` : "—";
+            return `
+          <div class="panel-list-item">
+            <div>
+              <div class="name">${dataFmt} ${v["Horário"] ? "às " + v["Horário"] : ""} — ${escapeHtml(v["Procedimento"] || "")}</div>
+              <div class="meta">${formatCurrency(v["Valor"])}</div>
+            </div>
+            <span class="status-${v["Status"]}">${v["Status"] || ""}</span>
+          </div>`;
+          })
+          .join("")}
+      </div>`
+      }
+    </div>`;
+  }
+
   function renderPacienteResultados() {
     const container = document.getElementById("pacienteResultados");
     if (!container) return;
@@ -407,63 +597,40 @@
       return;
     }
 
-    const grupos = {};
-    state.agendamentos.forEach((ag) => {
-      if (!normalize(ag["Nome"]).includes(termo)) return;
-      const chave = normalize(ag["Nome"]) + "|" + normalize(ag["Telefone"]);
-      if (!grupos[chave]) grupos[chave] = { nome: ag["Nome"], telefone: ag["Telefone"], email: ag["Email"], visitas: [] };
-      grupos[chave].visitas.push(ag);
-    });
-
-    const lista = Object.values(grupos);
+    const lista = buildPacientesUnificados().filter((p) => normalize(p.nome).includes(termo));
     if (lista.length === 0) {
       container.innerHTML = `<p class="panel-empty">Nenhum paciente encontrado com esse nome.</p>`;
       return;
     }
 
-    container.innerHTML = lista
-      .map((paciente) => {
-        const concluidas = paciente.visitas.filter((v) => v["Status"] === "Concluído");
-        const totalGasto = concluidas.reduce((sum, v) => sum + (parseFloat(v["Valor"]) || 0), 0);
-        const procedimentos = [...new Set(concluidas.map((v) => v["Procedimento"]).filter(Boolean))];
-        const visitasOrdenadas = paciente.visitas
-          .slice()
-          .sort((a, b) => String(b["Data da Consulta"]).localeCompare(String(a["Data da Consulta"])));
+    container.innerHTML = lista.map(renderPacienteCard).join("");
+  }
 
-        return `
-        <div class="panel-patient-card">
-          <div class="panel-patient-head">
-            <div>
-              <h3>${escapeHtml(paciente.nome)}</h3>
-              <span>${escapeHtml(paciente.telefone || "")}${paciente.email ? " · " + escapeHtml(paciente.email) : ""}</span>
-            </div>
-          </div>
-          <div class="panel-stats">
-            <div class="panel-stat"><strong>${paciente.visitas.length}</strong><span>Agendamentos</span></div>
-            <div class="panel-stat"><strong>${concluidas.length}</strong><span>Visitas concluídas</span></div>
-            <div class="panel-stat"><strong>${formatCurrency(totalGasto)}</strong><span>Total gasto</span></div>
-            <div class="panel-stat"><strong>${procedimentos.length}</strong><span>Procedimentos distintos</span></div>
-          </div>
-          ${procedimentos.length ? `<p style="margin-bottom:1rem; font-size:0.88rem; color:var(--ink-soft);"><strong>Procedimentos realizados:</strong> ${procedimentos.map(escapeHtml).join(", ")}</p>` : ""}
-          <div class="panel-list">
-            ${visitasOrdenadas
-              .map((v) => {
-                const [y, m, d] = String(v["Data da Consulta"] || "").split("-");
-                const dataFmt = y ? `${d}/${m}/${y}` : "—";
-                return `
-              <div class="panel-list-item">
-                <div>
-                  <div class="name">${dataFmt} ${v["Horário"] ? "às " + v["Horário"] : ""} — ${escapeHtml(v["Procedimento"] || "")}</div>
-                  <div class="meta">${formatCurrency(v["Valor"])}</div>
-                </div>
-                <span class="status-${v["Status"]}">${v["Status"] || ""}</span>
-              </div>`;
-              })
-              .join("")}
-          </div>
-        </div>`;
-      })
-      .join("");
+  // Lista completa de pacientes (cadastrados e/ou com agendamentos), sempre
+  // visível abaixo da busca, com aviso de cadastros duplicados (mesmo
+  // telefone aparecendo mais de uma vez em Cadastros).
+  function renderTodosPacientes() {
+    const container = document.getElementById("pacienteTodos");
+    if (!container) return;
+
+    const todos = buildPacientesUnificados().sort((a, b) => normalize(a.nome).localeCompare(normalize(b.nome)));
+
+    if (todos.length === 0) {
+      container.innerHTML = `<p class="panel-empty">Nenhum paciente cadastrado ainda.</p>`;
+    } else {
+      container.innerHTML = todos.map(renderPacienteCard).join("");
+    }
+
+    const duplicados = todos.filter((p) => p.cadastros.length > 1);
+    const aviso = document.getElementById("pacienteDuplicidadeAviso");
+    if (aviso) {
+      if (duplicados.length > 0) {
+        aviso.hidden = false;
+        aviso.textContent = `⚠️ ${duplicados.length} paciente(s) com cadastro duplicado (mesmo telefone em mais de um cadastro) — veja o aviso no card de cada um.`;
+      } else {
+        aviso.hidden = true;
+      }
+    }
   }
 
   // ---------- Helpers ----------

@@ -126,6 +126,7 @@
 .tipo-Entrada { background: #e8f5e9; color: #2e7d32; }
 .tipo-Saída { background: #fdecea; color: #b3261e; }
 .tipo-Compra { background: #fff4e0; color: #a9835d; }
+.tipo-Duplicidade { background: #fff4e0; color: #a9835d; }
 
 .fin-cat-bar-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.7rem; font-size: 0.85rem; }
 .fin-cat-bar-label { width: 190px; flex-shrink: 0; color: var(--ink-soft); }

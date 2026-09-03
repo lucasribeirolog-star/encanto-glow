@@ -9,8 +9,8 @@
 <link rel="icon" href="/assets/images/logo-encanto-glow.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=18">
-<link rel="stylesheet" href="/assets/css/painel.css?v=18">
+<link rel="stylesheet" href="/assets/css/style.css?v=19">
+<link rel="stylesheet" href="/assets/css/painel.css?v=19">
 </head>
 <body class="panel-body">
 
@@ -49,27 +49,31 @@
       <div class="panel-card panel-card-narrow">
         <h2 id="agFormTitle">Novo agendamento</h2>
         <form id="agendaForm">
-          <div class="form-row">
-            <div class="form-field">
-              <label for="agNome">Nome do paciente</label>
-              <input type="text" id="agNome" required>
-            </div>
-            <div class="form-field">
-              <label for="agTelefone">Telefone</label>
-              <input type="tel" id="agTelefone" required placeholder="(15) 99999-9999">
-            </div>
+          <div class="form-field">
+            <label for="agNome">Paciente cadastrado</label>
+            <select id="agNome" required>
+              <option value="" disabled selected>Selecione um paciente</option>
+            </select>
+            <p style="font-size:0.8rem; color:var(--ink-soft); margin-top:0.4rem;">Não encontrou o paciente? Ele precisa preencher o <a href="/cadastro.html" target="_blank" style="color:var(--rose-dark); text-decoration:underline;">formulário de cadastro</a> antes de agendar.</p>
           </div>
           <div class="form-row">
             <div class="form-field">
-              <label for="agEmail">E-mail (opcional)</label>
-              <input type="email" id="agEmail">
+              <label for="agTelefone">Telefone</label>
+              <input type="tel" id="agTelefone" required placeholder="(15) 99999-9999" readonly>
             </div>
+            <div class="form-field">
+              <label for="agEmail">E-mail</label>
+              <input type="email" id="agEmail" readonly>
+            </div>
+          </div>
+          <div class="form-row">
             <div class="form-field">
               <label for="agProcedimento">Procedimento</label>
               <select id="agProcedimento" required>
                 <option value="" disabled selected>Selecione</option>
               </select>
             </div>
+            <div class="form-field"></div>
           </div>
           <div class="form-row">
             <div class="form-field">
@@ -153,6 +157,12 @@
         <input type="text" id="pacienteBusca" placeholder="Digite o nome do paciente...">
       </div>
       <div id="pacienteResultados"></div>
+
+      <div class="section-head" style="text-align:left; margin:2.4rem 0 1.2rem;">
+        <h2 style="font-size:1.3rem;">Todos os pacientes</h2>
+        <p id="pacienteDuplicidadeAviso" hidden style="color:#b3261e; font-size:0.85rem; margin-top:0.4rem;"></p>
+      </div>
+      <div id="pacienteTodos"></div>
     </section>
 
     <!-- ===== Produtos (Loja) ===== -->
@@ -278,7 +288,7 @@
   </main>
 </div>
 
-<script src="/assets/js/treatments-data.js?v=18"></script>
-<script src="/assets/js/painel.js?v=18"></script>
+<script src="/assets/js/treatments-data.js?v=19"></script>
+<script src="/assets/js/painel.js?v=19"></script>
 </body>
 </html>
